@@ -1,0 +1,912 @@
+{
+  "info": {
+    "_postman_id": "aml-platform-collection-v1",
+    "name": "AML Platform",
+    "description": "Full API test suite for the AML+AIOps platform.\n\nBefore running:\n1. Run `make pf-aml pf-aiops` to forward all service ports.\n2. Select the **AML Platform – Local** environment.\n3. Run the **End-to-End Flow** folder in order to seed shared variables (customerId, caseId, etc.).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "kyc_url",     "value": "http://localhost:8082", "type": "string" },
+    { "key": "txn_url",     "value": "http://localhost:8081", "type": "string" },
+    { "key": "case_url",    "value": "http://localhost:8080", "type": "string" },
+    { "key": "ml_url",      "value": "http://localhost:8000", "type": "string" },
+    { "key": "llm_url",     "value": "http://localhost:8001", "type": "string" },
+    { "key": "alert_url",   "value": "http://localhost:9005", "type": "string" },
+    { "key": "customerId",  "value": "CUST-TEST-001",         "type": "string" },
+    { "key": "caseId",      "value": "",                      "type": "string" },
+    { "key": "alertId",     "value": "",                      "type": "string" },
+    { "key": "incidentId",  "value": "INC-TEST-001",          "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "Customer KYC – health",
+          "request": {
+            "method": "GET",
+            "url": "{{kyc_url}}/actuator/health"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('status UP', () => pm.expect(b.status).to.equal('UP'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Transaction Monitoring – health",
+          "request": {
+            "method": "GET",
+            "url": "{{txn_url}}/actuator/health"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('status UP', () => pm.expect(pm.response.json().status).to.equal('UP'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Case Management – health",
+          "request": {
+            "method": "GET",
+            "url": "{{case_url}}/actuator/health"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('status UP', () => pm.expect(pm.response.json().status).to.equal('UP'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "ML Engine – health",
+          "request": {
+            "method": "GET",
+            "url": "{{ml_url}}/v1/health"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('status UP', () => pm.expect(pm.response.json().status).to.equal('UP'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "LLM Engine – health",
+          "request": {
+            "method": "GET",
+            "url": "{{llm_url}}/v1/health"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('status UP', () => pm.expect(b.status).to.equal('UP'));",
+              "pm.test('ollamaReady present', () => pm.expect(b).to.have.property('ollamaReady'));",
+              "pm.test('model present', () => pm.expect(b.model).to.be.a('string').and.not.empty);"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Alerting Service – health",
+          "request": {
+            "method": "GET",
+            "url": "{{alert_url}}/actuator/health"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('status UP', () => pm.expect(pm.response.json().status).to.equal('UP'));"
+            ], "type": "text/javascript" }
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": "Customer KYC",
+      "item": [
+        {
+          "name": "Onboard Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{kyc_url}}/api/v1/customers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"legalName\": \"Acme Trading Ltd\",\n  \"residencyCountry\": \"US\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.test('id returned', () => pm.expect(b.id).to.be.a('string').and.not.empty);",
+              "pm.collectionVariables.set('customerId', b.id);"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Get Customer",
+          "request": {
+            "method": "GET",
+            "url": "{{kyc_url}}/api/v1/customers/{{customerId}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('id matches', () => pm.expect(b.id).to.equal(pm.collectionVariables.get('customerId')));",
+              "pm.test('legalName present', () => pm.expect(b.legalName).to.be.a('string').and.not.empty);",
+              "pm.test('residencyCountry present', () => pm.expect(b.residencyCountry).to.be.a('string'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Get Customer – 404 unknown",
+          "request": {
+            "method": "GET",
+            "url": "{{kyc_url}}/api/v1/customers/CUST-DOES-NOT-EXIST"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Verify Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{kyc_url}}/api/v1/customers/{{customerId}}/verify",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verifiedBy\": \"compliance-officer-01\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Update Risk Profile – HIGH PEP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{kyc_url}}/api/v1/customers/{{customerId}}/risk",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newTier\": \"HIGH\",\n  \"politicallyExposed\": true,\n  \"sanctioned\": false,\n  \"reason\": \"Customer identified as PEP during enhanced due diligence\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Update Risk Profile – SANCTIONED",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{kyc_url}}/api/v1/customers/{{customerId}}/risk",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newTier\": \"CRITICAL\",\n  \"politicallyExposed\": false,\n  \"sanctioned\": true,\n  \"reason\": \"Matched OFAC SDN list entry\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+            ], "type": "text/javascript" }
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": "Transaction Monitoring",
+      "item": [
+        {
+          "name": "Evaluate Transaction – Low Risk",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{txn_url}}/api/v1/transactions/evaluate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"amount\": \"450.00\",\n  \"currency\": \"USD\",\n  \"originCountry\": \"US\",\n  \"destinationCountry\": \"US\",\n  \"channel\": \"CARD\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "const b = pm.response.json();",
+              "pm.test('transactionId present', () => pm.expect(b.transactionId).to.be.a('string').and.not.empty);",
+              "pm.test('riskScore numeric', () => pm.expect(b.riskScore).to.be.a('number'));",
+              "pm.test('alerted boolean', () => pm.expect(b.alerted).to.be.a('boolean'));",
+              "if (b.alertId) pm.collectionVariables.set('alertId', b.alertId);"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Evaluate Transaction – High Risk Cross-Border",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{txn_url}}/api/v1/transactions/evaluate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"amount\": \"95000.00\",\n  \"currency\": \"USD\",\n  \"originCountry\": \"US\",\n  \"destinationCountry\": \"IR\",\n  \"channel\": \"SWIFT\",\n  \"occurredAt\": \"2026-05-12T02:30:00Z\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "const b = pm.response.json();",
+              "pm.test('transactionId present', () => pm.expect(b.transactionId).to.be.a('string').and.not.empty);",
+              "pm.test('riskScore numeric', () => pm.expect(b.riskScore).to.be.a('number'));",
+              "if (b.alertId) {",
+              "  pm.collectionVariables.set('alertId', b.alertId);",
+              "  pm.test('alerted true', () => pm.expect(b.alerted).to.be.true);",
+              "}"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Evaluate Transaction – Missing Field (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{txn_url}}/api/v1/transactions/evaluate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"amount\": \"1000.00\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+            ], "type": "text/javascript" }
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": "Case Management",
+      "item": [
+        {
+          "name": "Open Case",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{case_url}}/api/v1/cases",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alertId\": \"{{alertId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"riskScore\": 85\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": { "exec": [
+                "if (!pm.collectionVariables.get('alertId')) {",
+                "  pm.collectionVariables.set('alertId', 'ALERT-SEED-001');",
+                "}"
+              ], "type": "text/javascript" }
+            },
+            {
+              "listen": "test",
+              "script": { "exec": [
+                "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                "const b = pm.response.json();",
+                "pm.test('id returned', () => pm.expect(b.id).to.be.a('string').and.not.empty);",
+                "pm.collectionVariables.set('caseId', b.id);",
+                "pm.test('Location header set', () => pm.expect(pm.response.headers.get('Location')).to.include(b.id));"
+              ], "type": "text/javascript" }
+            }
+          ]
+        },
+        {
+          "name": "Open Case – riskScore out of range (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{case_url}}/api/v1/cases",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alertId\": \"ALERT-BAD-001\",\n  \"customerId\": \"{{customerId}}\",\n  \"riskScore\": 150\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Assign Case",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{case_url}}/api/v1/cases/{{caseId}}/assign",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"investigatorId\": \"investigator-42\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Escalate Case",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{case_url}}/api/v1/cases/{{caseId}}/escalate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"High-value cross-border transfer to sanctioned jurisdiction requires senior review\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Close Case – SAR Filed",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{case_url}}/api/v1/cases/{{caseId}}/close",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolution\": \"SAR filed with FinCEN on 2026-05-12. Transaction confirmed suspicious.\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+            ], "type": "text/javascript" }
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": "AIOps – Alerting Service",
+      "item": [
+        {
+          "name": "List Incidents (default limit)",
+          "request": {
+            "method": "GET",
+            "url": "{{alert_url}}/api/v1/incidents"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('array response', () => pm.expect(pm.response.json()).to.be.an('array'));",
+              "const list = pm.response.json();",
+              "if (list.length > 0) {",
+              "  const first = list[0];",
+              "  pm.test('incidentId present', () => pm.expect(first).to.have.property('incidentId'));",
+              "  pm.test('anomalyScore present', () => pm.expect(first.anomalyScore).to.be.a('number'));",
+              "  pm.collectionVariables.set('incidentId', first.incidentId);",
+              "}"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "List Incidents (limit=5)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{alert_url}}/api/v1/incidents?limit=5",
+              "query": [{ "key": "limit", "value": "5" }]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('at most 5 items', () => pm.expect(pm.response.json().length).to.be.at.most(5));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "List Remediations",
+          "request": {
+            "method": "GET",
+            "url": "{{alert_url}}/api/v1/remediations"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('array response', () => pm.expect(pm.response.json()).to.be.an('array'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "List Outcomes",
+          "request": {
+            "method": "GET",
+            "url": "{{alert_url}}/api/v1/outcomes"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('array response', () => pm.expect(pm.response.json()).to.be.an('array'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Outcomes Summary",
+          "request": {
+            "method": "GET",
+            "url": "{{alert_url}}/api/v1/outcomes/summary"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('object response', () => pm.expect(pm.response.json()).to.be.an('object'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Service Health",
+          "request": {
+            "method": "GET",
+            "url": "{{alert_url}}/api/v1/services/health"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const list = pm.response.json();",
+              "pm.test('array response', () => pm.expect(list).to.be.an('array'));",
+              "pm.test('covers 3 services', () => pm.expect(list.length).to.equal(3));",
+              "const serviceNames = list.map(s => s.service);",
+              "pm.test('customer-kyc present', () => pm.expect(serviceNames).to.include('customer-kyc'));",
+              "pm.test('transaction-monitoring present', () => pm.expect(serviceNames).to.include('transaction-monitoring'));",
+              "pm.test('case-management present', () => pm.expect(serviceNames).to.include('case-management'));",
+              "list.forEach(s => {",
+              "  pm.test(`${s.service} status valid`, () =>",
+              "    pm.expect(s.status).to.be.oneOf(['OK', 'WARNING', 'CRITICAL']));",
+              "});"
+            ], "type": "text/javascript" }
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": "ML Engine",
+      "item": [
+        {
+          "name": "Score Incidents – single feature record",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{ml_url}}/v1/incidents/score",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"features\": [\n    {\n      \"windowId\": \"win-001\",\n      \"service\": \"transaction-monitoring\",\n      \"windowStart\": \"2026-05-12T02:00:00Z\",\n      \"windowEnd\":   \"2026-05-12T02:05:00Z\",\n      \"avgValue\": 620.5,\n      \"maxValue\": 980.0,\n      \"rateOfChange\": 1.45,\n      \"metricName\": \"http_request_duration_ms_p95\",\n      \"sampleCount\": 300\n    }\n  ]\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const list = pm.response.json();",
+              "pm.test('array response', () => pm.expect(list).to.be.an('array'));",
+              "pm.test('one result', () => pm.expect(list.length).to.equal(1));",
+              "const inc = list[0];",
+              "pm.test('incidentId present', () => pm.expect(inc.incidentId).to.be.a('string').and.not.empty);",
+              "pm.test('anomalyScore in [0,1]', () => pm.expect(inc.anomalyScore).to.be.within(0, 1));",
+              "pm.test('affectedServices array', () => pm.expect(inc.affectedServices).to.be.an('array'));",
+              "pm.test('rootCauseRanking array', () => pm.expect(inc.rootCauseRanking).to.be.an('array'));",
+              "pm.test('breachEtaMinutes int', () => pm.expect(inc.breachEtaMinutes).to.be.a('number'));",
+              "pm.collectionVariables.set('incidentId', inc.incidentId);"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Score Incidents – batch (3 services)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{ml_url}}/v1/incidents/score",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"features\": [\n    {\n      \"windowId\": \"win-002\",\n      \"service\": \"customer-kyc\",\n      \"windowStart\": \"2026-05-12T02:00:00Z\",\n      \"windowEnd\":   \"2026-05-12T02:05:00Z\",\n      \"avgValue\": 55.0,\n      \"maxValue\": 120.0,\n      \"rateOfChange\": 0.1,\n      \"metricName\": \"http_request_duration_ms_p95\",\n      \"sampleCount\": 150\n    },\n    {\n      \"windowId\": \"win-003\",\n      \"service\": \"transaction-monitoring\",\n      \"windowStart\": \"2026-05-12T02:00:00Z\",\n      \"windowEnd\":   \"2026-05-12T02:05:00Z\",\n      \"avgValue\": 850.0,\n      \"maxValue\": 1500.0,\n      \"rateOfChange\": 3.2,\n      \"metricName\": \"http_request_duration_ms_p95\",\n      \"sampleCount\": 300\n    },\n    {\n      \"windowId\": \"win-004\",\n      \"service\": \"case-management\",\n      \"windowStart\": \"2026-05-12T02:00:00Z\",\n      \"windowEnd\":   \"2026-05-12T02:05:00Z\",\n      \"avgValue\": 200.0,\n      \"maxValue\": 350.0,\n      \"rateOfChange\": 0.5,\n      \"metricName\": \"http_request_duration_ms_p95\",\n      \"sampleCount\": 200\n    }\n  ]\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const list = pm.response.json();",
+              "pm.test('3 results', () => pm.expect(list.length).to.equal(3));",
+              "list.forEach((inc, i) => {",
+              "  pm.test(`[${i}] anomalyScore in [0,1]`, () => pm.expect(inc.anomalyScore).to.be.within(0, 1));",
+              "  pm.test(`[${i}] confidence in [0,1]`, () => pm.expect(inc.confidence).to.be.within(0, 1));",
+              "});"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Score Incidents – empty features (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{ml_url}}/v1/incidents/score",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"features\": [] }"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Update Model with Outcome",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{ml_url}}/v1/models/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"outcomeId\":   \"OUT-001\",\n  \"incidentId\":  \"{{incidentId}}\",\n  \"decisionId\":  \"DEC-001\",\n  \"label\":       \"RESOLVED\",\n  \"sloBefore\":   0.85,\n  \"sloAfter\":    0.99,\n  \"evaluatedAt\": \"2026-05-12T03:00:00Z\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('accepted status', () => pm.expect(b.status).to.equal('accepted'));",
+              "pm.test('incidentId echoed', () => pm.expect(b.incidentId).to.equal(pm.collectionVariables.get('incidentId')));"
+            ], "type": "text/javascript" }
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": "LLM Engine",
+      "item": [
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{llm_url}}/v1/stats"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('trainingExamples integer', () => pm.expect(b.trainingExamples).to.be.a('number'));",
+              "pm.test('totalAnalyses integer',    () => pm.expect(b.totalAnalyses).to.be.a('number'));",
+              "pm.test('modelId present',          () => pm.expect(b.modelId).to.be.a('string').and.not.empty);",
+              "pm.test('adapterReady boolean',     () => pm.expect(b.adapterReady).to.be.a('boolean'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Analyze Incident",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{llm_url}}/v1/analyze",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"incidentId\":       \"{{incidentId}}\",\n  \"service\":          \"transaction-monitoring\",\n  \"anomalyScore\":     0.87,\n  \"rootCause\":        \"p95 latency spike — possible DB connection pool exhaustion\",\n  \"breachEtaMinutes\": 12,\n  \"confidence\":       0.82\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('analysisId present',     () => pm.expect(b.analysisId).to.be.a('string').and.not.empty);",
+              "pm.test('explanation present',    () => pm.expect(b.explanation).to.be.a('string').and.not.empty);",
+              "pm.test('rootCause present',      () => pm.expect(b.rootCause).to.be.a('string').and.not.empty);",
+              "pm.test('recommendation present', () => pm.expect(b.recommendation).to.be.a('string').and.not.empty);",
+              "pm.test('amlRisk valid',          () => pm.expect(b.amlRisk).to.be.oneOf(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']));",
+              "pm.test('confidence in [0,1]',    () => pm.expect(b.confidence).to.be.within(0, 1));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Add Training Example",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{llm_url}}/v1/train",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"incidentId\":   \"{{incidentId}}\",\n  \"service\":      \"transaction-monitoring\",\n  \"anomalyScore\": 0.87,\n  \"rootCause\":    \"DB connection pool exhaustion\",\n  \"outcome\":      \"RESOLVED\",\n  \"actionTaken\":  \"Increased connection pool size from 10 to 30\",\n  \"explanation\":  \"Latency spike resolved after DB pool expansion\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('accepted status', () => pm.expect(b.status).to.equal('accepted'));",
+              "pm.test('trainingExamples count', () => pm.expect(b.trainingExamples).to.be.a('number').and.above(0));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Training Status",
+          "request": {
+            "method": "GET",
+            "url": "{{llm_url}}/v1/train/status"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('status present', () => pm.expect(b.status).to.be.a('string'));",
+              "pm.test('adapterReady boolean', () => pm.expect(b.adapterReady).to.be.a('boolean'));",
+              "pm.test('lossHistory array', () => pm.expect(b.lossHistory).to.be.an('array'));",
+              "pm.test('minExamples present', () => pm.expect(b.minExamples).to.be.a('number'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Start Fine-tuning (needs ≥5 examples)",
+          "request": {
+            "method": "POST",
+            "url": "{{llm_url}}/v1/train/start"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "const code = pm.response.code;",
+              "pm.test('200 started or 400 not-enough-data', () => pm.expect(code).to.be.oneOf([200, 400]));",
+              "if (code === 200) {",
+              "  const b = pm.response.json();",
+              "  pm.test('status started', () => pm.expect(b.status).to.equal('started'));",
+              "  pm.test('examples count', () => pm.expect(b.examples).to.be.a('number').and.at.least(5));",
+              "}"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Stop Fine-tuning",
+          "request": {
+            "method": "POST",
+            "url": "{{llm_url}}/v1/train/stop"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('stop_requested status', () => pm.expect(pm.response.json().status).to.equal('stop_requested'));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "Recent Analyses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{llm_url}}/v1/analyses?limit=10",
+              "query": [{ "key": "limit", "value": "10" }]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('array response', () => pm.expect(pm.response.json()).to.be.an('array'));",
+              "pm.test('at most 10 items', () => pm.expect(pm.response.json().length).to.be.at.most(10));"
+            ], "type": "text/javascript" }
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": "End-to-End Flow",
+      "description": "Run this folder in order: seeds a full lifecycle from KYC onboarding through transaction alert to case management to AIOps analysis.",
+      "item": [
+        {
+          "name": "E2E 1 – Onboard Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{kyc_url}}/api/v1/customers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"CUST-E2E-001\",\n  \"legalName\": \"Dragon Shell Corp\",\n  \"residencyCountry\": \"CN\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('customerId', pm.response.json().id);"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "E2E 2 – Verify Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{kyc_url}}/api/v1/customers/{{customerId}}/verify",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"verifiedBy\": \"kyc-officer-01\" }"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "E2E 3 – Evaluate High-Risk Transaction",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{txn_url}}/api/v1/transactions/evaluate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"amount\": \"120000.00\",\n  \"currency\": \"USD\",\n  \"originCountry\": \"CN\",\n  \"destinationCountry\": \"KP\",\n  \"channel\": \"SWIFT\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "const b = pm.response.json();",
+              "if (b.alertId) pm.collectionVariables.set('alertId', b.alertId);",
+              "else pm.collectionVariables.set('alertId', 'ALERT-E2E-FALLBACK');"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "E2E 4 – Open Case",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{case_url}}/api/v1/cases",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alertId\": \"{{alertId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"riskScore\": 92\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('caseId', pm.response.json().id);"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "E2E 5 – Score Incident via ML Engine",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{ml_url}}/v1/incidents/score",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"features\": [{\n    \"windowId\": \"win-e2e-001\",\n    \"service\": \"transaction-monitoring\",\n    \"windowStart\": \"2026-05-12T02:00:00Z\",\n    \"windowEnd\":   \"2026-05-12T02:05:00Z\",\n    \"avgValue\": 1100.0,\n    \"maxValue\": 2400.0,\n    \"rateOfChange\": 5.8,\n    \"metricName\": \"http_request_duration_ms_p95\",\n    \"sampleCount\": 300\n  }]\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const inc = pm.response.json()[0];",
+              "pm.collectionVariables.set('incidentId', inc.incidentId);"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "E2E 6 – Analyze via LLM Engine",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{llm_url}}/v1/analyze",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"incidentId\":       \"{{incidentId}}\",\n  \"service\":          \"transaction-monitoring\",\n  \"anomalyScore\":     0.95,\n  \"rootCause\":        \"extreme latency — CN→KP high-value wire triggered rule cascade\",\n  \"breachEtaMinutes\": 5,\n  \"confidence\":       0.91\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('amlRisk high/critical', () => pm.expect(b.amlRisk).to.be.oneOf(['HIGH', 'CRITICAL']));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "E2E 7 – Assign & Close Case",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{case_url}}/api/v1/cases/{{caseId}}/assign",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"investigatorId\": \"senior-analyst-01\" }"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+            ], "type": "text/javascript" }
+          }]
+        },
+        {
+          "name": "E2E 8 – Verify Service Health (post-load)",
+          "request": {
+            "method": "GET",
+            "url": "{{alert_url}}/api/v1/services/health"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('all services reported', () => pm.expect(pm.response.json().length).to.equal(3));"
+            ], "type": "text/javascript" }
+          }]
+        }
+      ]
+    }
+
+  ]
+}

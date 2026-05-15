@@ -1,0 +1,1 @@
+__TypeId__:com.yourbank.aiops.alerting.domain.Incident	{"incidentId":"test-005","detectedAt":"2026-05-10T09:26:53.4398430Z","anomalyScore":0.95,"affectedServices":["payment-service"],"rootCauseRanking":[{"component":"db-pool","weight":0.8}],"breachEtaMinutes":15,"confidence":0.88}

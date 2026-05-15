@@ -1,0 +1,39 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Grafana extra datasources — Loki + Tempo
+# The kube-prometheus-stack sidecar watches for ConfigMaps with
+# label grafana_datasource="1" and provisions them automatically.
+# Apply: kubectl apply -f infrastructure/k8s/grafana-datasources.yml
+# Then restart Grafana: kubectl rollout restart deployment -n monitoring -l app.kubernetes.io/name=grafana
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-extra-datasources
+  namespace: monitoring
+  labels:
+    grafana_datasource: "1"
+data:
+  extra-datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.monitoring.svc.cluster.local:3100
+        isDefault: false
+        version: 1
+        editable: true
+
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo.monitoring.svc.cluster.local:3200
+        isDefault: false
+        version: 1
+        editable: true
+        jsonData:
+          httpMethod: GET
+          tracesToLogs:
+            datasourceUid: loki
+            filterByTraceID: true
+            filterBySpanID: false

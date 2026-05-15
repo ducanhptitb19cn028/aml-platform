@@ -1,0 +1,22 @@
+package com.yourbank.aiops.collector.domain;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.time.Instant;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record TraceSignal(
+        String service,
+        Instant timestamp,
+        String traceId,
+        String spanId,
+        String operation,
+        long durationMs,
+        int statusCode
+) implements Signal {
+
+    @Override
+    public SignalType type() {
+        return SignalType.TRACE;
+    }
+}

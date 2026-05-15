@@ -1,0 +1,148 @@
+# Full local stack: infrastructure + all three application services.
+# Build context is the project root (one directory up from this file).
+#
+#   docker compose -f infrastructure/docker-compose.yml up --build -d
+#
+# First run builds images (~3 min each); subsequent runs reuse the layer cache.
+# To shut down and clean all state:
+#   docker compose -f infrastructure/docker-compose.yml down -v
+
+services:
+  # Database-per-service: each bounded context owns its schema.
+  # We expose them on different host ports so both can run side-by-side.
+  postgres-cases:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: case_management
+      POSTGRES_USER: case_mgmt
+      POSTGRES_PASSWORD: dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-cases-data:/var/lib/postgresql/data
+
+  postgres-monitoring:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: transaction_monitoring
+      POSTGRES_USER: tx_mon
+      POSTGRES_PASSWORD: dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg-monitoring-data:/var/lib/postgresql/data
+
+  postgres-kyc:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: customer_kyc
+      POSTGRES_USER: kyc
+      POSTGRES_PASSWORD: dev
+    ports:
+      - "5434:5432"
+    volumes:
+      - pg-kyc-data:/var/lib/postgresql/data
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.7.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.7.1
+    depends_on: [zookeeper]
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Two listeners: INTERNAL for container-to-container, EXTERNAL for host tools.
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+
+  tempo:
+    image: grafana/tempo:2.6.0
+    command: ["-config.file=/etc/tempo.yml"]
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./observability/tempo.yml:/etc/tempo.yml:ro
+
+  loki:
+    image: grafana/loki:3.2.0
+    ports:
+      - "3100:3100"
+
+  # ── Application services ──────────────────────────────────────────────────
+  # Build context is ".." (project root) so Docker can resolve the parent pom.xml.
+
+  customer-kyc:
+    build:
+      context: ..
+      dockerfile: services/customer-kyc/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      DB_HOST: postgres-kyc
+      DB_NAME: customer_kyc
+      DB_USER: kyc
+      DB_PASS: dev
+      KAFKA_BOOTSTRAP: kafka:29092
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+    depends_on: [postgres-kyc, kafka]
+
+  transaction-monitoring:
+    build:
+      context: ..
+      dockerfile: services/transaction-monitoring/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: postgres-monitoring
+      DB_NAME: transaction_monitoring
+      DB_USER: tx_mon
+      DB_PASS: dev
+      KAFKA_BOOTSTRAP: kafka:29092
+      AML_KYC_BASE_URL: http://customer-kyc:8082
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+    depends_on: [postgres-monitoring, kafka, customer-kyc]
+
+  case-management:
+    build:
+      context: ..
+      dockerfile: services/case-management/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: postgres-cases
+      DB_NAME: case_management
+      DB_USER: case_mgmt
+      DB_PASS: dev
+      KAFKA_BOOTSTRAP: kafka:29092
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+    depends_on: [postgres-cases, kafka]
+
+volumes:
+  pg-cases-data:
+  pg-monitoring-data:
+  pg-kyc-data:

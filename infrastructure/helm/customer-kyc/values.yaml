@@ -1,0 +1,48 @@
+replicaCount: 3   # higher than other services because every transaction evaluation hits this
+
+image:
+  repository: aml-registry:5000/customer-kyc
+  tag: 0.3.0
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+env:
+  DB_HOST: postgres-kyc
+  DB_NAME: customer_kyc
+  DB_USER: kyc
+  KAFKA_BOOTSTRAP: kafka:9092
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+  OTEL_SERVICE_NAME: customer-kyc
+  TRACE_SAMPLE_RATE: "1.0"
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/actuator/prometheus"
+  prometheus.io/port: "8082"
+
+# Tightest SLOs in the platform — KYC is on the hot path of every
+# rule evaluation in Monitoring. Slow KYC = slow everything.
+slo:
+  availability: 99.99
+  latency:
+    p95Ms: 50
+    p99Ms: 150
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCpuUtilization: 60
+
+podDisruptionBudget:
+  minAvailable: 2   # always keep at least 2 pods serving lookups
+
+networkPolicy:
+  enabled: true

@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: feedback-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: aiops-feedback-service
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.yourbank.aiops.feedback.domain.RemediationRecord
+
+server:
+  port: 9006
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+aiops:
+  feedback:
+    prometheus:
+      url: ${PROMETHEUS_URL:http://localhost:9090}
+    mlflow:
+      url: ${MLFLOW_URL:http://mlflow:5000}
+      experiment-id: ${MLFLOW_EXPERIMENT_ID:0}
+    evaluation:
+      delay-minutes: ${EVALUATION_DELAY_MINUTES:10}
+
+logging:
+  level:
+    com.yourbank.aiops: INFO
+    org.springframework.kafka: WARN

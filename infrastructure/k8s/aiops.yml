@@ -1,0 +1,950 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# AIOps Platform — Kubernetes manifests
+# Apply: kubectl apply -f infrastructure/k8s/aiops.yml
+# ─────────────────────────────────────────────────────────────────────────────
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aiops
+  labels:
+    app.kubernetes.io/part-of: aiops-platform
+
+---
+# ══════════════════════════════════════════════════════════
+#  RBAC — remediation-engine needs cluster-wide edit rights
+#  for Deployments, HPAs, and Ingresses in the aml namespace
+# ══════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: remediation-engine
+  namespace: aiops
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: aiops-remediation-role
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch", "update"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "patch", "update"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: aiops-remediation-binding
+subjects:
+  - kind: ServiceAccount
+    name: remediation-engine
+    namespace: aiops
+roleRef:
+  kind: ClusterRole
+  name: aiops-remediation-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# ══════════════════════════════════════════════════════════
+#  ConfigMap — shared env for all AIOps services
+# ══════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aiops-common-env
+  namespace: aiops
+data:
+  KAFKA_BOOTSTRAP:    "kafka.data.svc.cluster.local:9092"
+  PROMETHEUS_URL:     "http://prometheus-operated.monitoring.svc.cluster.local:9090"
+  LOKI_URL:           "http://loki.monitoring.svc.cluster.local:3100"
+  TEMPO_URL:          "http://tempo.monitoring.svc.cluster.local:3200"
+  MLFLOW_URL:         "http://mlflow.aiops.svc.cluster.local:5000"
+  ELASTICSEARCH_URL:  "http://elasticsearch.aiops.svc.cluster.local:9200"
+
+---
+# ══════════════════════════════════════════════════════════
+#  telemetry-collector  (port 9001)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetry-collector
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: telemetry-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: telemetry-collector
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: telemetry-collector
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "9001"
+    spec:
+      containers:
+        - name: telemetry-collector
+          image: localhost:5001/telemetry-collector:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9001
+          envFrom:
+            - configMapRef:
+                name: aiops-common-env
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: telemetry-collector
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telemetry-collector
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: telemetry-collector
+  ports:
+    - name: http
+      port: 9001
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  stream-processor  (port 9002)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-processor
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: stream-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stream-processor
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: stream-processor
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "9002"
+    spec:
+      containers:
+        - name: stream-processor
+          image: localhost:5001/stream-processor:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9002
+          envFrom:
+            - configMapRef:
+                name: aiops-common-env
+          env:
+            - name: KAFKA_STREAMS_STATE_DIR
+              value: /tmp/kafka-streams
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: stream-processor
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 20
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            limits:   { cpu: "1",  memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stream-processor
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: stream-processor
+  ports:
+    - name: http
+      port: 9002
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  ml-engine  (Python FastAPI · port 8000)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-engine
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: ml-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ml-engine
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ml-engine
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/metrics"
+        prometheus.io/port:   "8000"
+    spec:
+      containers:
+        - name: ml-engine
+          image: localhost:5001/ml-engine:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: aiops-common-env
+          env:
+            - name: SLO_THRESHOLD_MS
+              value: "500"
+          readinessProbe:
+            httpGet: { path: /v1/health, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 15
+          livenessProbe:
+            httpGet: { path: /v1/health, port: http }
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 300m, memory: 512Mi }
+            limits:   { cpu: "2",  memory: 2Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-engine
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: ml-engine
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  decision-engine  (port 9003)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decision-engine
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: decision-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: decision-engine
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: decision-engine
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "9003"
+    spec:
+      containers:
+        - name: decision-engine
+          image: localhost:5001/decision-engine:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9003
+          envFrom:
+            - configMapRef:
+                name: aiops-common-env
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: decision-engine
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: decision-engine
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: decision-engine
+  ports:
+    - name: http
+      port: 9003
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  remediation-engine  (port 9004)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: remediation-engine
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: remediation-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: remediation-engine
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: remediation-engine
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "9004"
+    spec:
+      serviceAccountName: remediation-engine
+      containers:
+        - name: remediation-engine
+          image: localhost:5001/remediation-engine:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9004
+          envFrom:
+            - configMapRef:
+                name: aiops-common-env
+          env:
+            - name: AML_NAMESPACE
+              value: aml
+            - name: AIOPS_NAMESPACE
+              value: aiops
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: remediation-engine
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: remediation-engine
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: remediation-engine
+  ports:
+    - name: http
+      port: 9004
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  alerting-service  (port 9005) — also serves REST API for the dashboard
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alerting-service
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: alerting-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alerting-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: alerting-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "9005"
+    spec:
+      containers:
+        - name: alerting-service
+          image: localhost:5001/alerting-service:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9005
+          envFrom:
+            - configMapRef:
+                name: aiops-common-env
+          env:
+            - name: SLACK_WEBHOOK_URL
+              value: ""
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: alerting-service
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 192Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alerting-service
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: alerting-service
+  ports:
+    - name: http
+      port: 9005
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  feedback-service  (port 9006)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feedback-service
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: feedback-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: feedback-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: feedback-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "9006"
+    spec:
+      containers:
+        - name: feedback-service
+          image: localhost:5001/feedback-service:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9006
+          envFrom:
+            - configMapRef:
+                name: aiops-common-env
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: feedback-service
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: feedback-service
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: feedback-service
+  ports:
+    - name: http
+      port: 9006
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  MLflow tracking server  (port 5000)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mlflow
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mlflow
+    spec:
+      containers:
+        - name: mlflow
+          image: ghcr.io/mlflow/mlflow:v2.17.0
+          command:
+            - mlflow
+            - server
+            - --host=0.0.0.0
+            - --port=5000
+            - --backend-store-uri=sqlite:////mlflow/mlflow.db
+            - --default-artifact-root=/mlflow/artifacts
+          ports:
+            - name: http
+              containerPort: 5000
+          volumeMounts:
+            - name: mlflow-storage
+              mountPath: /mlflow
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 10
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+      volumes:
+        - name: mlflow-storage
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: mlflow
+  ports:
+    - name: http
+      port: 5000
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  Ollama — local Qwen2.5:3b inference server (port 11434)
+#  First startup: pulls ~2 GB model from ollama.com
+#  Model is cached on the PVC so subsequent restarts are instant.
+# ══════════════════════════════════════════════════════════
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models
+  namespace: aiops
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - name: http
+              containerPort: 11434
+          env:
+            - name: OLLAMA_KEEP_ALIVE
+              value: "-1"   # keep model loaded in memory indefinitely
+          volumeMounts:
+            - name: ollama-models
+              mountPath: /root/.ollama
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - "sleep 5 && ollama pull qwen2.5:3b 2>&1 | tee /tmp/pull.log &"
+          livenessProbe:
+            httpGet: { path: /, port: 11434 }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "ollama list | grep -q qwen2.5"]
+            initialDelaySeconds: 60    # model pull takes a few minutes first time
+            periodSeconds: 30
+            failureThreshold: 20       # wait up to 10 minutes
+          resources:
+            requests: { cpu: "1",   memory: 4Gi }
+            limits:   { cpu: "4",   memory: 8Gi }
+      volumes:
+        - name: ollama-models
+          persistentVolumeClaim:
+            claimName: ollama-models
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: ollama
+  ports:
+    - name: http
+      port: 11434
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  llm-engine  (port 8001 · Qwen2.5-3B via Ollama + LoRA training)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-engine
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: llm-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: llm-engine
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: llm-engine
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/metrics"
+        prometheus.io/port:   "8001"
+    spec:
+      containers:
+        - name: llm-engine
+          image: localhost:5001/llm-engine:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8001
+          env:
+            - name: OLLAMA_URL
+              value: "http://ollama.aiops.svc.cluster.local:11434"
+            - name: OLLAMA_MODEL
+              value: "qwen2.5:3b"
+            - name: TRAINING_MODEL
+              value: "Qwen/Qwen2.5-0.5B-Instruct"   # fast CPU training; change to 3B for GPU
+            - name: MIN_TRAINING_EXAMPLES
+              value: "5"
+            - name: TRAIN_EPOCHS
+              value: "3"
+            - name: ADAPTER_DIR
+              value: "/tmp/qwen-lora-adapter"
+          envFrom:
+            - configMapRef:
+                name: aiops-common-env
+          readinessProbe:
+            httpGet: { path: /v1/health, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 20
+          resources:
+            requests: { cpu: 500m,  memory: 1Gi }
+            limits:   { cpu: "2",   memory: 6Gi }   # training needs headroom
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-engine
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: llm-engine
+  ports:
+    - name: http
+      port: 8001
+      targetPort: http
+
+---
+# ══════════════════════════════════════════════════════════
+#  Elasticsearch  (port 9200 · single-node dev)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  namespace: aiops
+  labels:
+    app.kubernetes.io/name: elasticsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch
+          image: elasticsearch:7.17.25
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: xpack.security.enabled
+              value: "false"
+            - name: ES_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+          ports:
+            - name: http
+              containerPort: 9200
+          readinessProbe:
+            httpGet: { path: /_cluster/health, port: http }
+            periodSeconds: 10
+            initialDelaySeconds: 30
+            failureThreshold: 10
+          resources:
+            requests: { cpu: 300m, memory: 1Gi }
+            limits:   { cpu: "1",  memory: 2Gi }
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
+      volumes:
+        - name: es-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: aiops
+spec:
+  selector:
+    app.kubernetes.io/name: elasticsearch
+  ports:
+    - name: http
+      port: 9200
+      targetPort: http
+
+---
+# ── ServiceMonitors — let kube-prometheus-stack scrape AIOps services ─────────
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: telemetry-collector
+  namespace: aiops
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: telemetry-collector
+  namespaceSelector:
+    matchNames: [aiops]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: stream-processor
+  namespace: aiops
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stream-processor
+  namespaceSelector:
+    matchNames: [aiops]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ml-engine
+  namespace: aiops
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ml-engine
+  namespaceSelector:
+    matchNames: [aiops]
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: decision-engine
+  namespace: aiops
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: decision-engine
+  namespaceSelector:
+    matchNames: [aiops]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: remediation-engine
+  namespace: aiops
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: remediation-engine
+  namespaceSelector:
+    matchNames: [aiops]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: alerting-service
+  namespace: aiops
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alerting-service
+  namespaceSelector:
+    matchNames: [aiops]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: feedback-service
+  namespace: aiops
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: feedback-service
+  namespaceSelector:
+    matchNames: [aiops]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: llm-engine
+  namespace: aiops
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: llm-engine
+  namespaceSelector:
+    matchNames: [aiops]
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

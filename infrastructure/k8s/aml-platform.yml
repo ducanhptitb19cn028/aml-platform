@@ -1,0 +1,405 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# AML Platform — Kubernetes manifests
+# Apply: kubectl apply -f infrastructure/k8s/aml-platform.yml
+# Assumes namespace: aml already exists (created here) and data layer is up.
+# ─────────────────────────────────────────────────────────────────────────────
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aml
+  labels:
+    app.kubernetes.io/part-of: aml-platform
+
+---
+# ══════════════════════════════════════════════════════════
+#  customer-kyc  (port 8082 · 3 replicas · SLO 99.99%)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-kyc
+  namespace: aml
+  labels:
+    app.kubernetes.io/name: customer-kyc
+    app.kubernetes.io/part-of: aml-platform
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: customer-kyc
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: customer-kyc
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "8082"
+    spec:
+      containers:
+        - name: customer-kyc
+          image: localhost:5001/customer-kyc:0.3.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8082
+          env:
+            - name: DB_HOST
+              value: postgres-kyc-postgresql.data.svc.cluster.local
+            - name: DB_NAME
+              value: customer_kyc
+            - name: DB_USER
+              value: kyc
+            - name: DB_PASS
+              value: dev
+            - name: KAFKA_BOOTSTRAP
+              value: kafka.data.svc.cluster.local:9092
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: customer-kyc
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits:   { cpu: "1",  memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer-kyc
+  namespace: aml
+  labels:
+    app.kubernetes.io/name: customer-kyc
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: customer-kyc
+  ports:
+    - name: http
+      port: 8082
+      targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: customer-kyc
+  namespace: aml
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: customer-kyc
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 60 }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: customer-kyc
+  namespace: aml
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: customer-kyc
+
+---
+# ══════════════════════════════════════════════════════════
+#  transaction-monitoring  (port 8081 · 2 replicas)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-monitoring
+  namespace: aml
+  labels:
+    app.kubernetes.io/name: transaction-monitoring
+    app.kubernetes.io/part-of: aml-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: transaction-monitoring
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: transaction-monitoring
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "8081"
+    spec:
+      containers:
+        - name: transaction-monitoring
+          image: localhost:5001/transaction-monitoring:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: postgres-monitoring-postgresql.data.svc.cluster.local
+            - name: DB_NAME
+              value: transaction_monitoring
+            - name: DB_USER
+              value: tx_mon
+            - name: DB_PASS
+              value: dev
+            - name: KAFKA_BOOTSTRAP
+              value: kafka.data.svc.cluster.local:9092
+            - name: AML_KYC_BASE_URL
+              value: http://customer-kyc.aml.svc.cluster.local:8082
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: transaction-monitoring
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 300m, memory: 768Mi }
+            limits:   { cpu: "1.5", memory: "1.5Gi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transaction-monitoring
+  namespace: aml
+  labels:
+    app.kubernetes.io/name: transaction-monitoring
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: transaction-monitoring
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: transaction-monitoring
+  namespace: aml
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: transaction-monitoring
+  minReplicas: 2
+  maxReplicas: 15
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 65 }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: transaction-monitoring
+  namespace: aml
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: transaction-monitoring
+
+---
+# ══════════════════════════════════════════════════════════
+#  case-management  (port 8080 · 2 replicas)
+# ══════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: case-management
+  namespace: aml
+  labels:
+    app.kubernetes.io/name: case-management
+    app.kubernetes.io/part-of: aml-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: case-management
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: case-management
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "8080"
+    spec:
+      containers:
+        - name: case-management
+          image: localhost:5001/case-management:0.1.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: DB_HOST
+              value: postgres-cases-postgresql.data.svc.cluster.local
+            - name: DB_NAME
+              value: case_management
+            - name: DB_USER
+              value: case_mgmt
+            - name: DB_PASS
+              value: dev
+            - name: KAFKA_BOOTSTRAP
+              value: kafka.data.svc.cluster.local:9092
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: case-management
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            limits:   { cpu: "1",  memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: case-management
+  namespace: aml
+  labels:
+    app.kubernetes.io/name: case-management
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: case-management
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: case-management
+  namespace: aml
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: case-management
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 70 }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: case-management
+  namespace: aml
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: case-management
+
+---
+# ── ServiceMonitors — let kube-prometheus-stack scrape AML services ──────────
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: customer-kyc
+  namespace: aml
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: customer-kyc
+  namespaceSelector:
+    matchNames: [aml]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: transaction-monitoring
+  namespace: aml
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: transaction-monitoring
+  namespaceSelector:
+    matchNames: [aml]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: case-management
+  namespace: aml
+  labels:
+    release: kube-prom-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: case-management
+  namespaceSelector:
+    matchNames: [aml]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s

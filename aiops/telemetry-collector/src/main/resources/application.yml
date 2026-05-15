@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: telemetry-collector
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: aiops-telemetry-collector
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+server:
+  port: 9001
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+aiops:
+  collector:
+    prometheus:
+      url: ${PROMETHEUS_URL:http://localhost:9090}
+      interval-ms: 30000
+    loki:
+      url: ${LOKI_URL:http://localhost:3100}
+    tempo:
+      url: ${TEMPO_URL:http://localhost:3200}
+
+logging:
+  level:
+    com.yourbank.aiops: INFO
+    org.springframework.kafka: WARN

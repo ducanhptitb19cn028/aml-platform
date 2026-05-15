@@ -1,0 +1,120 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# AIOps supplementary infrastructure
+#
+# Extends the main infrastructure/docker-compose.yml stack.
+# Start the main stack first, then:
+#   docker compose -f infrastructure/aiops/docker-compose.yml up -d
+#
+# Services added here:
+#   elasticsearch  — hot storage for signals / incidents
+#   kibana         — ES visualisation UI
+#   mlflow         — experiment tracking + model registry
+#   ml-engine      — Python FastAPI scoring service
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Elasticsearch 8 (single-node, no security for dev) ────────────────────
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - aiops-net
+
+  # ── Kibana ─────────────────────────────────────────────────────────────────
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - aiops-net
+
+  # ── MLflow tracking server ─────────────────────────────────────────────────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.17.0
+    container_name: mlflow
+    command: >
+      mlflow server
+        --host 0.0.0.0
+        --port 5000
+        --backend-store-uri sqlite:///mlflow.db
+        --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5000/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+    networks:
+      - aiops-net
+
+  # ── AIOps ML Engine (Python FastAPI) ──────────────────────────────────────
+  ml-engine:
+    build:
+      context: ../../ml/ml-engine
+      dockerfile: Dockerfile
+    container_name: ml-engine
+    environment:
+      - KAFKA_BOOTSTRAP=${KAFKA_BOOTSTRAP:-kafka:29092}
+      - PROMETHEUS_URL=${PROMETHEUS_URL:-http://prometheus:9090}
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - SLO_THRESHOLD_MS=${SLO_THRESHOLD_MS:-500}
+    ports:
+      - "8000:8000"
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/v1/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+    networks:
+      - aiops-net
+
+  # ── AIOps React Dashboard ─────────────────────────────────────────────────
+  dashboard:
+    build:
+      context: ../../dashboard
+      dockerfile: Dockerfile
+    container_name: aiops-dashboard
+    ports:
+      - "3001:80"
+    depends_on:
+      - ml-engine
+    restart: unless-stopped
+    networks:
+      - aiops-net
+
+volumes:
+  es_data:
+  mlflow_data:
+
+networks:
+  aiops-net:
+    external: true
+    name: ${DOCKER_NETWORK:-aml-network}

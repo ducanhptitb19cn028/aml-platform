@@ -1,0 +1,209 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Dev-only PostgreSQL StatefulSets (3 instances)
+# Replaces: helm install bitnami/postgresql (blocked by Windows WDAC on Chocolatey shim)
+# Service names match what the Bitnami chart produces so aml-platform.yml needs no changes.
+# Apply: kubectl apply -f infrastructure/k8s/postgres-dev.yml
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── postgres-kyc ─────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-kyc-secret
+  namespace: data
+type: Opaque
+stringData:
+  POSTGRES_USER:     kyc
+  POSTGRES_PASSWORD: dev
+  POSTGRES_DB:       customer_kyc
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-kyc
+  namespace: data
+  labels:
+    app: postgres-kyc
+spec:
+  serviceName: postgres-kyc-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-kyc
+  template:
+    metadata:
+      labels:
+        app: postgres-kyc
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          envFrom:
+            - secretRef:
+                name: postgres-kyc-secret
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, kyc, -d, customer_kyc]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-kyc-postgresql
+  namespace: data
+spec:
+  selector:
+    app: postgres-kyc
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+# ── postgres-monitoring ───────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-monitoring-secret
+  namespace: data
+type: Opaque
+stringData:
+  POSTGRES_USER:     tx_mon
+  POSTGRES_PASSWORD: dev
+  POSTGRES_DB:       transaction_monitoring
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-monitoring
+  namespace: data
+  labels:
+    app: postgres-monitoring
+spec:
+  serviceName: postgres-monitoring-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-monitoring
+  template:
+    metadata:
+      labels:
+        app: postgres-monitoring
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          envFrom:
+            - secretRef:
+                name: postgres-monitoring-secret
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, tx_mon, -d, transaction_monitoring]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-monitoring-postgresql
+  namespace: data
+spec:
+  selector:
+    app: postgres-monitoring
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+# ── postgres-cases ────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-cases-secret
+  namespace: data
+type: Opaque
+stringData:
+  POSTGRES_USER:     case_mgmt
+  POSTGRES_PASSWORD: dev
+  POSTGRES_DB:       case_management
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-cases
+  namespace: data
+  labels:
+    app: postgres-cases
+spec:
+  serviceName: postgres-cases-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-cases
+  template:
+    metadata:
+      labels:
+        app: postgres-cases
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          envFrom:
+            - secretRef:
+                name: postgres-cases-secret
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, case_mgmt, -d, case_management]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-cases-postgresql
+  namespace: data
+spec:
+  selector:
+    app: postgres-cases
+  ports:
+    - port: 5432
+      targetPort: 5432

@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: transaction-monitoring
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:transaction_monitoring}
+    username: ${DB_USER:tx_mon}
+    password: ${DB_PASS:dev}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+
+server:
+  port: 8081
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      service: ${spring.application.name}
+      env: ${ENV:dev}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        aml.transaction.evaluate: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+  tracing:
+    sampling:
+      probability: ${TRACE_SAMPLE_RATE:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
+
+logging:
+  pattern:
+    correlation: "[%X{traceId:-},%X{spanId:-}] "
+  level:
+    com.yourbank.aml: INFO
+    org.springframework.kafka: WARN
+
+aml:
+  kafka:
+    topic:
+      alerts: aml.alerts.events
+  outbox:
+    poll-interval-ms: 500
+    batch-size: 50
+    send-timeout-seconds: 5
+  rules:
+    high-value:
+      threshold: "10000"
+      currency: USD
+    velocity:
+      max-transactions: 5
+      window-hours: 1
+    structuring:
+      window-hours: 24
+      min-transactions: 3

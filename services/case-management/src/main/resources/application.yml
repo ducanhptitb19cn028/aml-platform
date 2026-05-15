@@ -1,0 +1,80 @@
+spring:
+  application:
+    name: case-management
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:case_management}
+    username: ${DB_USER:case_mgmt}
+    password: ${DB_PASS:dev}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+
+server:
+  port: 8080
+  shutdown: graceful
+
+# === OBSERVABILITY — first-class concern for the research testbed ===
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  metrics:
+    tags:
+      service: ${spring.application.name}
+      env: ${ENV:dev}
+    distribution:
+      percentiles-histogram:
+        # Histograms (not just summaries) so we can compute SLO burn rate
+        # and feed quantile-aware features to the detection model
+        http.server.requests: true
+        aml.case.open: true
+        aml.case.assign: true
+        aml.case.escalate: true
+        aml.case.close: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+  tracing:
+    # Full sampling for the research testbed.
+    # In production this would be ~10%; for the experiment we want every span
+    # so we can subsample post-hoc and study sampling impact (RQ3).
+    sampling:
+      probability: ${TRACE_SAMPLE_RATE:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
+
+# Structured logging — every line carries trace_id and span_id so logs
+# can be joined to traces post-hoc. This is what makes log-based features
+# usable in the multi-signal fusion model.
+logging:
+  pattern:
+    correlation: "[%X{traceId:-},%X{spanId:-}] "
+  level:
+    com.yourbank.aml: INFO
+    org.springframework.kafka: WARN
+
+aml:
+  kafka:
+    topic:
+      case-events: aml.cases.events
+      # Topic that Transaction Monitoring publishes to and we consume from
+      alerts: aml.alerts.events
+  outbox:
+    poll-interval-ms: 500
+    batch-size: 50
+    send-timeout-seconds: 5

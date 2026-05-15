@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: stream-processor
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    streams:
+      application-id: aiops-stream-processor
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+      default-key-serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+      default-value-serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+      properties:
+        state.dir: /tmp/kafka-streams
+        commit.interval.ms: 5000
+        cache.max.bytes.buffering: 10485760
+        num.stream.threads: 2
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+server:
+  port: 9002
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    com.yourbank.aiops: INFO
+    org.apache.kafka.streams: WARN
+    org.springframework.kafka: WARN

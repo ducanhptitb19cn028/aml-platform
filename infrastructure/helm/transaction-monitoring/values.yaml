@@ -1,0 +1,48 @@
+replicaCount: 2
+
+image:
+  repository: aml-registry:5000/transaction-monitoring
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 300m
+    memory: 768Mi
+  limits:
+    cpu: 1500m
+    memory: 1.5Gi
+
+env:
+  DB_HOST: postgres-monitoring
+  DB_NAME: transaction_monitoring
+  DB_USER: tx_mon
+  KAFKA_BOOTSTRAP: kafka:9092
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+  OTEL_SERVICE_NAME: transaction-monitoring
+  TRACE_SAMPLE_RATE: "1.0"
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/actuator/prometheus"
+  prometheus.io/port: "8081"
+
+# SLOs — slightly tighter latency than Case Management because rule
+# evaluation is on the synchronous path of payment authorisation
+slo:
+  availability: 99.95
+  latency:
+    p95Ms: 100
+    p99Ms: 250
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 15
+  targetCpuUtilization: 65
+
+podDisruptionBudget:
+  minAvailable: 1
+
+networkPolicy:
+  enabled: true
