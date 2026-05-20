@@ -1,0 +1,1008 @@
+\documentclass[a4paper]{lipics-v2021}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+
+\setlength{\marginparwidth}{2cm}
+\usepackage{todonotes}
+\setlength{\emergencystretch}{3em}
+
+\newcommand{\FIXME}[1]{{\color{blue} [TODO: #1]}}
+\newcommand{\REF}[1]{{\color{red} [REF]}}
+\newcommand{\TODO}[1]{{\color{blue} [@@ #1]}}
+\newcommand{\todoS}[1]{\todo[author=Satish, inline,color=blue!25]{#1}}
+\newcommand{\todoA}[1]{\todo[author=Alex, inline,color=red!15]{#1}}
+\newcommand{\mypara}[1]{{\vspace{0.1mm}\noindent\textbf{#1}}}
+
+\bibliographystyle{plainurl}
+
+\title{Observability-Driven Intelligence for Anomaly Detection in
+Cloud-Native Distributed Microservices}
+\titlerunning{Observability-Driven AIOps for Cloud-Native Microservices}
+
+\author{Ngoc Duc Anh Nguyen}
+       {School of Built Environment, Engineering and Computing,
+        Leeds Beckett University, Leeds, UK}
+       {n.nguyen3896@leedsbeckett.ac.uk}
+       {}{}
+
+\author{Satish Kumar}
+       {School of Built Environment, Engineering and Computing,
+        Leeds Beckett University, Leeds, UK}
+       {s.kumar@leedsbeckett.ac.uk}
+       {}{}
+
+\author{Nawar Jawad}
+       {School of Built Environment, Engineering and Computing,
+        Leeds Beckett University, Leeds, UK}
+       {n.nawar@leedsbeckett.ac.uk}
+       {}{}
+
+\authorrunning{N.\,D.\,A. Nguyen, S. Kumar, and N. Jawad}
+
+\Copyright{Ngoc Duc Anh Nguyen, Satish Kumar, and Nawar Jawad}
+
+\ccsdesc[500]{Computer systems organization~Cloud computing}
+\ccsdesc[300]{Computing methodologies~Anomaly detection}
+\ccsdesc[300]{Information systems~Data management systems}
+
+\keywords{anomaly detection, microservices, observability, machine learning,
+Kubernetes, distributed tracing, root cause analysis, AIOps,
+anti-money laundering}
+
+\funding{This research is supported by Leeds Beckett University.}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Anti-money laundering~(AML) compliance platforms built on cloud-native
+microservice architectures face a fundamental monitoring challenge: the volume
+and heterogeneity of operational telemetry defeats manual analysis, yet
+sensitive financial data must remain on-premises to satisfy data residency
+regulations. We present an observability-driven AIOps platform that couples a
+purpose-built AML microservices testbed with a fully local automated
+intelligence layer. The testbed comprises three Kubernetes-deployed domain
+services---customer KYC verification, transaction monitoring with a four-rule
+composite risk engine, and case management---instrumented with OpenTelemetry
+and a transactional outbox pattern that dual-routes compliance domain events as
+both the Kafka application event stream and ground-truth anomaly labels,
+eliminating secondary annotation overhead. Eight dedicated AIOps services
+ingest a three-pillar telemetry pipeline (Prometheus, Loki, Grafana Tempo) and
+apply a three-algorithm ML pipeline: Isolation Forest for unsupervised anomaly
+scoring over 60-second stream-windowed feature vectors, Pearson correlation
+analysis over sliding observational windows for root cause ranking, and
+ordinary least-squares regression on p95 latency trends for SLO breach
+prediction. Incident context is synthesised by a locally deployed Qwen2.5-3B
+large language model~\cite{qwen2024} served via Ollama~\cite{ollama2023} and
+continuously fine-tuned with LoRA adapters~\cite{hu2022lora} on resolved
+incident outcomes, producing structured JSON diagnostic reports with no
+external API dependency. The platform is evaluated via Chaos Mesh~\cite{chaosmesh2020}
+fault injection across four fault classes, targeting three research questions
+on multi-modal signal sufficiency~(RQ1), ML-driven root cause localisation
+accuracy versus single-modal baselines~(RQ2), and full-fidelity tracing
+overhead in regulated workloads~(RQ3).
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Distributed microservice architectures, now the dominant deployment model for
+enterprise cloud-native applications, create an inherent tension between
+operational visibility and diagnostic tractability. Modern systems routinely
+coordinate hundreds of containerised services across Kubernetes clusters, each
+emitting metrics, structured logs, and distributed traces at sub-second
+resolution~\cite{burns2016borg}. While this telemetry richness provides
+unprecedented observability into system behaviour, it simultaneously generates
+information volumes that far exceed human capacity to interpret: a single
+production cluster can produce millions of metric samples and thousands of log
+events per minute. When anomalies emerge---often as subtle cross-service causal
+chains rather than single-metric threshold violations---operators face an
+incident diagnosis problem that is intractable without automated support.
+
+In high-stakes regulated domains such as anti-money laundering~(AML)
+compliance, this challenge is substantially compounded. AML platforms are
+architecturally heterogeneous: synchronous REST APIs for customer identity
+verification, asynchronous Kafka event streams for transaction risk scoring,
+and stateful case management workflows with legally mandated lifecycle
+invariants all coexist within a single deployment and generate telemetry across
+fundamentally different operational patterns. More critically, financial data
+residency regulations in most jurisdictions explicitly prohibit exporting
+operational telemetry---which may embed transaction identifiers, customer
+references, or case metadata---to third-party cloud
+services~\cite{kosinska2023toward}. This restriction categorically excludes
+cloud-hosted AIOps platforms that have become standard in less regulated
+industries, precisely in the environments where reliable automated anomaly
+detection is most operationally consequential.
+
+Existing approaches fall into two inadequate categories. Rule-based monitoring
+systems evaluate individual metrics against static thresholds, generating
+excessive false-positive alert volumes and failing systematically on
+distributed anomalies that manifest as cross-service signal correlations rather
+than point violations~\cite{soldani2022anomaly}. Supervised learning approaches
+require labelled training data that is rarely available in production, since
+novel failure modes lack historical examples by definition. Commercial AIOps
+platforms---including Dynatrace Davis~AI and Datadog Watchdog---apply
+sophisticated correlation algorithms but require continuous telemetry export to
+vendor-managed infrastructure, rendering them incompatible with regulated
+environments~\cite{dynatrace2023, datadog2023}. No existing open-source
+platform unifies multi-modal anomaly detection, root cause ranking, and
+predictive SLO forecasting as a privacy-preserving, fully offline
+Kubernetes-native service.
+
+We address this gap with an observability-driven AIOps platform built on two
+complementary design decisions. First, all intelligence executes entirely
+within the Kubernetes cluster: anomaly scoring via Isolation
+Forest~\cite{liu2012isolation}, root cause ranking via Pearson correlation over
+sliding windows, SLO breach prediction via ordinary least-squares regression,
+and natural language incident narration via a locally served Qwen2.5-3B
+model~\cite{qwen2024} fine-tuned with LoRA adapters~\cite{hu2022lora} through
+Ollama~\cite{ollama2023}---none of which require external API access or cloud
+connectivity. Second, the AML testbed is instrumented using a transactional
+outbox pattern that dual-routes compliance domain events as both the
+application Kafka event stream and OpenTelemetry span events carrying business
+attributes, providing semantically rich, naturally labelled ground-truth
+anomaly signals without secondary annotation.
+
+The main contributions of this paper are: (i)~a production-grade, open-source
+eleven-service Kubernetes platform for AML-domain observability with a fully
+offline intelligence layer satisfying financial data residency requirements;
+(ii)~a domain event-based instrumentation strategy that derives ground-truth
+anomaly labels from AML compliance state transitions via OpenTelemetry span
+attributes, eliminating secondary labelling; (iii)~a three-algorithm offline ML
+pipeline---Isolation Forest anomaly detection, Pearson correlation root cause
+ranking, and OLS-based SLO breach prediction---integrated with a locally
+fine-tuned Qwen2.5-3B language model served via Ollama; and (iv)~a controlled
+Chaos Mesh fault injection evaluation protocol on a realistic AML workload,
+addressing three research questions on signal combination
+sufficiency~(RQ1), ML-driven versus baseline root cause
+localisation~(RQ2), and distributed tracing overhead on regulated
+workloads~(RQ3).
+
+The remainder of this paper is organised as follows.
+Section~\ref{sec:background} reviews cloud-native observability foundations
+and related anomaly detection literature. Section~\ref{sec:approach} presents
+the system architecture, mathematical problem formulation, and component
+implementation. Section~\ref{sec:eval} describes the experimental evaluation.
+Section~\ref{sec:conclusion} concludes.
+
+\section{Background and Related Works}
+\label{sec:background}
+
+\subsection{Cloud-Native Observability}
+
+The concept of observability originates in control theory, where a dynamical
+system is considered observable if its internal state can be fully determined
+from a finite sequence of external output measurements within a finite time
+horizon~\cite{kosinska2023toward}. The principle translates directly to
+distributed software systems: an application is observable if its operational
+state can be reconstructed from the telemetry it emits, without requiring
+instrumentation changes or direct access to production processes at the time of
+investigation~\cite{boten2022cloudnative}. This framing distinguishes
+observability from monitoring: monitoring tells an operator whether a
+predefined condition holds, whereas observability enables forming and answering
+questions that were not anticipated at deployment time.
+
+The operational realisation of observability in cloud-native systems rests upon
+three interdependent telemetry signal types, collectively the three
+pillars~\cite{boten2022cloudnative, kosinska2023toward}
+(Fig.~\ref{fig:observability}). \textit{Metrics} are scalar measurements
+sampled at regular intervals---CPU utilisation, request throughput, error
+rates, and queue depths---providing low-overhead, high-frequency indicators of
+system health. Prometheus has emerged as the de facto standard for Kubernetes
+metrics collection, offering a pull-based scraping model with a rich query
+language (PromQL)~\cite{prometheus2015}. \textit{Logs} are immutable,
+timestamped records of discrete events capturing contextual detail that
+aggregated metrics discard. Loki extends the Prometheus model to log
+aggregation, indexing by Kubernetes labels and enabling efficient streaming
+queries via LogQL~\cite{loki2019}. \textit{Distributed traces} follow
+individual requests across multiple services, recording span durations,
+parent-child call relationships, and propagated context, providing the causal
+structure that neither metrics nor logs alone can supply. Grafana Tempo
+provides a cost-effective, object-storage-backed trace backend designed for
+Kubernetes-scale trace ingestion~\cite{tempo2022}.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  svc/.style={draw,rectangle,rounded corners=2pt,minimum height=0.55cm,
+              minimum width=1.5cm,align=center,font=\scriptsize,fill=gray!10},
+  pillar/.style={draw,rectangle,rounded corners=3pt,minimum height=2.8cm,
+                 minimum width=2.0cm,align=center,font=\scriptsize},
+  intel/.style={draw,rectangle,rounded corners=3pt,minimum height=0.65cm,
+                align=center,font=\scriptsize},
+  arr/.style={-Stealth,thick}
+]
+% Application layer
+\node[svc] (s1) at (1.0,4.1) {KYC};
+\node[svc] (s2) at (2.7,4.1) {Tx-Mon};
+\node[svc] (s3) at (4.4,4.1) {Cases};
+\node[svc] (s4) at (6.1,4.1) {Stream};
+\node[font=\scriptsize] at (7.2,4.1) {\ldots};
+\draw[gray,dashed,rounded corners=3pt] (0.15,3.62) rectangle (7.55,4.55);
+\node[font=\scriptsize\bfseries,fill=white,inner sep=1pt] at (3.85,4.55)
+    {Cloud-Native Application (Kubernetes)};
+\node[font=\tiny,fill=white,inner sep=1pt] at (3.85,3.62)
+    {OpenTelemetry Auto-Instrumentation};
+% Three pillars
+\node[pillar,fill=blue!5] (M) at (1.3,1.8) {
+    \textbf{Metrics}\\[3pt]
+    CPU / Memory\\
+    Request rate\\
+    Error rate\\[5pt]
+    \textit{Prometheus}\\
+};
+\node[pillar,fill=green!5] (L) at (3.9,1.8) {
+    \textbf{Logs}\\[3pt]
+    Events\\
+    Stack traces\\
+    Warnings\\[5pt]
+    \textit{Loki}
+};
+\node[pillar,fill=orange!5] (T) at (6.5,1.8) {
+    \textbf{Traces}\\[3pt]
+    Span latency\\
+    Call graph\\
+    Error status\\[5pt]
+    \textit{Tempo}
+};
+% Intelligence layer
+\node[intel,draw=purple!60,fill=purple!5,minimum width=7.9cm] (AI) at (3.9,-0.2) {
+    \textbf{Observability Intelligence Layer:}\quad
+    Anomaly Detection $\mid$ RCA $\mid$ Forecasting
+};
+% Arrows: services to pillars
+\draw[arr,gray!70] (s1.south) -- ++(0,-0.25) -| (M.north);
+\draw[arr,gray!70] (s2.south) -- ++(0,-0.25) -| (L.north);
+\draw[arr,gray!70] (s3.south) -- ++(0,-0.25) -| (L.north);
+\draw[arr,gray!70] (s4.south) -- ++(0,-0.25) -| (T.north);
+% Arrows: pillars to intelligence
+\draw[arr] (M.south) -- (M.south |- AI.north);
+\draw[arr] (L.south) -- (L.south |- AI.north);
+\draw[arr] (T.south) -- (T.south |- AI.north);
+\end{tikzpicture}
+\caption{Three-pillar cloud-native observability architecture. Microservices
+auto-instrumented via OpenTelemetry emit metrics (Prometheus),
+logs (Loki), and distributed traces (Tempo), each capturing a distinct
+dimension of system behaviour. The observability intelligence layer correlates
+all three signal types for automated anomaly detection, root cause
+analysis~(RCA), and predictive forecasting.}
+\label{fig:observability}
+\end{figure}
+
+The importance of observability is acutely amplified in cloud-native
+architectures. Unlike monolithic applications, which present a single bounded
+fault surface, microservice architectures introduce cascading failure modes:
+a transient latency spike in a shared layer can propagate through dozens of
+dependent services before manifesting as user-visible
+errors~\cite{soldani2022anomaly}. Ephemeral container lifetimes, horizontal
+pod autoscaling, and rolling deployments continuously alter the system
+topology, making historical baselines a moving target. Sigelman et al.\
+documented this diagnostic challenge at Google scale with
+Dapper~\cite{sigelman2010dapper}; OpenTelemetry has since unified
+instrumentation APIs across languages and vendors~\cite{opentelemetry2023}.
+
+Raw telemetry data does not by itself confer intelligence. As the volume,
+velocity, and variety of cloud-native telemetry grow---Kosinska et al.\ found
+that 48 of 56 surveyed systems were explicitly distributed, generating
+multi-source signals~\cite{kosinska2023toward}---manual interpretation becomes
+operationally infeasible at scale. Dang et al.\ characterised the emerging
+field of AIOps as the application of machine learning to operational telemetry,
+arguing that heterogeneous multi-modal signals create both the opportunity and
+the necessity for automated analysis~\cite{dang2019aiops}. The present work
+operationalises this vision: rather than collecting telemetry and leaving
+interpretation to on-call engineers, it continuously applies a multi-model
+analysis pipeline to live observability data and delivers structured,
+actionable diagnoses. In the AML regulatory context, this automation imperative
+is compounded by a data residency constraint that prohibits any form of
+telemetry export to third-party infrastructure. A locally deployed intelligence
+layer must therefore achieve the analytical capability of commercial
+cloud-hosted platforms using only on-premises compute, motivating the
+combination of lightweight interpretable ML algorithms with an on-device LLM
+for human-readable diagnostic narration without cloud connectivity.
+
+\subsection{Anomaly Detection in Distributed Microservices}
+
+An anomaly in a distributed microservice system is any observation that
+deviates meaningfully from expected operational behaviour, where expectation
+is established from historical baselines or learned statistical
+models~\cite{soldani2022anomaly}. This definition is deliberately broad because
+anomalies in microservices manifest across multiple layers simultaneously:
+a memory leak in one service may appear first as a subtle increase in garbage
+collection pause time (metric anomaly), then as elevated downstream response
+latency (trace anomaly), and eventually as a cascade of timeout error log
+messages (log anomaly). The separation between these manifestations---and the
+time lag between root cause and downstream effects---is precisely what makes
+distributed anomaly detection harder than its single-service counterpart.
+
+At the \textit{metric level}, anomalies include CPU throttling, memory
+pressure, abnormal request rates, and distributional shifts in latency. At the
+\textit{trace level}, anomalies appear as unusual span durations, unexpected
+service call paths, or elevated error rates visible only when the full request
+dependency graph is examined~\cite{liu2020unsupervised}. At the \textit{log
+level}, anomalies surface as previously unseen event templates, anomalous
+repetition rates of known error patterns, or unexpected sequences deviating
+from the system's learned normal behaviour~\cite{he2021bert}. Because no single
+signal modality captures all three dimensions simultaneously, effective anomaly
+detection in microservices must be inherently multi-modal.
+
+The convergence of multi-modal anomaly signals makes observability not merely
+a diagnostic aid but the primary input substrate for automated intelligence.
+Operating on any single signal modality misses the cross-modal causal chains
+that define distributed failures: a resource exhaustion fault manifests first
+in JVM heap metrics, propagates to degraded response latencies in traces, and
+eventually produces timeout error log events. Detecting the fault early
+requires recognising the co-occurrence of a subtle metric inflection, a trace
+latency shift, and an emerging log cluster---a pattern invisible to any
+single-modal detector. The proposed approach continuously correlates all three
+signal modalities within a unified temporal context, applying algorithm-specific
+detectors per modality and synthesising their outputs through a structured LLM
+reasoning step.
+
+\subsection{Related Works}
+
+AIOps research has produced specialised solutions along each telemetry
+modality. For metric-based anomaly detection, Liu et
+al.~\cite{liu2012isolation} formalised Isolation Forest as an asymptotically
+efficient anomaly scoring mechanism well-suited to high-dimensional metric
+matrices. For reconstruction-error baselines, Malhotra et
+al.~\cite{malhotra2016lstm} established LSTM Autoencoders for multivariate
+time-series anomalies. For trace-based analysis, Liu et
+al.~\cite{liu2020unsupervised} demonstrated that unsupervised deep Bayesian
+networks applied to distributed trace structures can localise latency anomalies
+without labelled training data. For log-based analysis, He et
+al.~\cite{he2021bert} confirmed that semantic embedding combined with
+sequence-model detectors achieves high recall on previously unseen anomalies.
+More recent LLM-based approaches such as LogGPT~\cite{qi2023loggpt} reason
+over log semantics without pre-parsed templates, at the cost of inference
+latency and external API dependency. For root cause analysis, Han et
+al.~\cite{han2024holistic} proposed holistic correlation of metrics, logs, and
+traces through a causal graph, achieving improvements in localisation precision.
+Lomio et al.~\cite{lomio2022anomaly} conducted an empirical comparison of
+anomaly detection algorithms in cloud-native environments, concluding that
+ensemble or multi-modal approaches consistently outperform single-algorithm
+solutions.
+
+Commercial platforms represent the operational state of the art. Dynatrace
+Davis~AI~\cite{dynatrace2023} and Datadog Watchdog~\cite{datadog2023} apply
+AI-assisted correlation to fleet-scale telemetry, reporting significant
+reductions in mean time to detect~(MTTD) and mean time to resolve~(MTTR).
+However, these platforms require continuous telemetry export to vendor-managed
+cloud infrastructure---a model incompatible with regulated environments where
+data residency is mandated and with research settings requiring full system
+reproducibility.
+
+The research gap addressed by this work is threefold. First, no published
+open-source platform offers multi-modal anomaly detection, correlation-based
+RCA, and SLO breach prediction as a unified, production-grade Kubernetes-native
+service that operates entirely offline. Second, existing offline ML systems for
+AIOps do not integrate fine-tunable local LLMs for incident narration, requiring
+either cloud API access or static rule-based reporting. Third, ground-truth
+labelling in prior evaluations has relied on synthetic benchmarks
+(DeathStarBench, TrainTicket) that lack the semantic richness of
+domain-specific failure modes~\cite{soldani2022anomaly}; the AML testbed
+introduced in this work provides naturally labelled anomalies derived from
+compliance domain state machines, enabling more rigorous evaluation.
+
+\section{Proposed Approach}
+\label{sec:approach}
+
+The proposed system, hereafter the AMLOps-AIOps platform, consists of eleven
+Kubernetes-hosted microservices partitioned into two functional layers: an AML
+domain testbed that generates semantically labelled financial compliance
+telemetry, and a dedicated AIOps analysis layer that continuously monitors this
+telemetry and produces structured diagnostic outputs. All intelligence
+components execute within the cluster with no external API dependency,
+satisfying AML data residency constraints. The following subsections describe
+the system architecture, the mathematical formulation of the analytical
+problems, and the implementation of each component.
+
+\subsection{System Architecture}
+
+The platform is deployed across two application namespaces, \texttt{aml} and
+\texttt{aiops}, and a shared \texttt{monitoring} namespace for the
+observability stack. Fig.~\ref{fig:architecture} presents the complete platform
+topology. The AML domain layer comprises three Spring
+Boot~\cite{springboot2014} 3.x microservices: \textit{customer-kyc}, which
+performs know-your-customer identity verification and risk scoring;
+\textit{transaction-monitoring}, which evaluates individual transactions against
+a four-rule AML engine; and \textit{case-management}, which manages
+investigation case lifecycles from initial alert through resolution and
+regulatory reporting. All three services follow a hexagonal
+DDD~\cite{evans2003ddd} architecture with OpenTelemetry SDK auto-instrumentation
+and a transactional outbox pattern~\cite{richardson2018microservices} that
+guarantees exactly-once domain event delivery to
+Kafka~\cite{kafka2011,boten2022cloudnative}. Domain events are simultaneously
+emitted as OpenTelemetry span events carrying business attributes
+(\texttt{risk.band}, \texttt{case.id}, \texttt{customer.id}), meaning
+ground-truth anomaly labels are a natural byproduct of compliance operation
+rather than secondary annotation.
+
+{\sloppy The Kafka event bus carries ten topic families: AML domain events
+(\texttt{aml.customers.events}, \texttt{aml.transactions.events},
+\texttt{aml.cases.events}), AML LLM analysis (\texttt{aml.llm.analysis}),
+telemetry signals (\texttt{aiops.telemetry.metrics},
+\texttt{aiops.telemetry.logs}, \texttt{aiops.telemetry.traces}), feature
+windows (\texttt{aiops.features}), detected incidents (\texttt{aiops.incidents}),
+remediation decisions (\texttt{aiops.decisions}), executed actions
+(\texttt{aiops.actions}), resolved outcomes (\texttt{aiops.outcomes}), and
+30-second service health heartbeats (\texttt{aiops.service.heartbeat}).\par}
+
+The AIOps analysis layer consists of eight services: (i)~\textit{Telemetry
+Collector} normalises all incoming Kafka event streams to a canonical
+\texttt{MetricSignal} format; (ii)~\textit{Stream Processor} computes 60-second
+tumbling-window aggregates per (service, metric) pair; (iii)~\textit{ML Engine}
+applies the three-algorithm detection pipeline; (iv)~\textit{LLM Engine}
+synthesises MELT context into structured incident reports using
+Qwen2.5-3B~\cite{qwen2024} via Ollama~\cite{ollama2023};
+(v)~\textit{Decision Engine} applies policy-gated action selection;
+(vi)~\textit{Remediation Engine} executes Kubernetes remediation actions;
+(vii)~\textit{Alerting Service} maintains per-service health scores over REST;
+and (viii)~\textit{Feedback Service} captures operator outcomes for LoRA
+fine-tuning~\cite{hu2022lora} and MLflow tracking.
+
+The observability stack in the \texttt{monitoring} namespace comprises
+Prometheus (15-second metric scraping from all service endpoints), Loki (log
+aggregation via Kubernetes pod label streams), and Grafana Tempo (distributed
+trace collection via OTLP push)~\cite{prometheus2015, loki2019, tempo2022}.
+All AML services emit traces at 100\% sampling rate by default; the
+\texttt{TRACE\_SAMPLE\_RATE} environment variable switches between full,
+sampled, and disabled tracing without redeployment to support RQ3 overhead
+experiments.
+
+Namespace isolation is enforced via Kubernetes NetworkPolicy manifests: AML
+services are permitted egress only to Kafka broker ports and to the
+\texttt{monitoring} namespace OTLP endpoints; AIOps services additionally hold
+read access to the Prometheus HTTP API and Loki HTTP API for health-score
+queries and MELT context retrieval; only the Remediation Engine holds write
+access to the Kubernetes API Server, scoped to pod-restart and HPA-patch
+operations within the \texttt{aml} namespace. This least-privilege network
+perimeter implements the AML data-residency boundary at the cluster network
+layer, ensuring no telemetry can be routed to external systems regardless of
+application-level configuration.
+
+% ── Platform architecture figure ─────────────────────────────────────
+\begin{figure}[t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  aml/.style ={draw=blue!55,  fill=blue!6,   rectangle, rounded corners=4pt,
+               minimum height=1.1cm, minimum width=3.0cm,
+               align=center, font=\small},
+  obs/.style ={draw=green!55, fill=green!6,  rectangle, rounded corners=4pt,
+               minimum height=0.85cm, minimum width=2.8cm,
+               align=center, font=\small},
+  aiop/.style={draw=orange!55,fill=orange!6, rectangle, rounded corners=4pt,
+               minimum height=1.25cm, minimum width=2.7cm,
+               align=center, font=\small},
+  bus/.style ={draw=gray!60,  fill=yellow!8, rectangle, rounded corners=5pt,
+               minimum height=1.5cm,
+               align=center, font=\small\bfseries},
+  arr/.style ={-Stealth, semithick},
+  darr/.style={-Stealth, semithick, dashed, gray!55}
+]
+
+%% ── AML Domain Layer (top-left) ─────────────────────────────────────
+\node[aml] (kyc) at (2.0,   9.0) {\textbf{customer-kyc}\\KYC $\cdot$ Risk Score};
+\node[aml] (txm) at (7.0,   9.0) {\textbf{transaction-monitoring}\\AML Rules ($\times$4)};
+\node[aml] (cm)  at (12.0,  9.0) {\textbf{case-management}\\Case Lifecycle};
+
+\begin{scope}[on background layer]
+  \node[draw=blue!40, dashed, rounded corners=5pt, fill=blue!3, inner sep=10pt,
+        fit=(kyc)(txm)(cm),
+        label={[font=\small\bfseries,blue!65]above:AML Domain Layer
+               \upshape(\texttt{aml} namespace)}] (amlbox) {};
+\end{scope}
+
+%% ── Observability Stack (top-right, stacked) ─────────────────────────
+\node[obs] (prom)  at (18.0, 9.8) {\textbf{Prometheus}\\metrics $\cdot$ 15 s};
+\node[obs] (loki)  at (18.0, 8.7) {\textbf{Loki}\\log aggregation};
+\node[obs] (tempo) at (18.0, 7.6) {\textbf{Grafana Tempo}\\OTLP traces};
+
+\begin{scope}[on background layer]
+  \node[draw=green!50, dashed, rounded corners=5pt, fill=green!3, inner sep=8pt,
+        fit=(prom)(loki)(tempo),
+        label={[font=\small\bfseries,green!55!black]above:Observability Stack
+               \upshape(\texttt{monitoring} namespace)}] (obsbox) {};
+\end{scope}
+
+% Single clean OTLP arrow: AML box → Obs box
+\draw[darr] (amlbox.east) --
+    node[above, font=\scriptsize\itshape]{OTLP push} (obsbox.west);
+
+%% ── Apache Kafka bus ─────────────────────────────────────────────────
+\node[bus, minimum width=19.5cm] (kafka) at (9.75, 4.8)
+    {\textbf{Apache Kafka}\enspace(Strimzi Operator $\cdot$ 3 partitions)\\[5pt]
+     \texttt{aml.\{customers,\,transactions,\,cases\}.events}\enspace$\cdot$\enspace
+     \texttt{aiops.telemetry.\{metrics,\,logs,\,traces\}}\enspace$\cdot$\enspace
+     \texttt{aiops.\{features,\,incidents,\,decisions,\,outcomes\}}\enspace$\cdot$\enspace
+     \texttt{aiops.service.heartbeat}};
+
+%% AML → Kafka (three straight-down arrows)
+\draw[arr] (kyc.south) -- (kyc.south |- kafka.north);
+\draw[arr] (txm.south) -- (txm.south |- kafka.north);
+\draw[arr] (cm.south)  -- (cm.south  |- kafka.north);
+
+%% Obs → Kafka (metrics feed, straight down)
+\draw[darr] (prom.south) -- (prom.south |- kafka.north);
+
+%% ── AIOps pipeline: Row A ────────────────────────────────────────────
+\node[aiop] (tc)  at (1.5,   1.8) {\textbf{telemetry-collector}\\normalise streams};
+\node[aiop] (sp)  at (6.3,   1.8) {\textbf{stream-processor}\\60 s window};
+\node[aiop] (ml)  at (11.1,  1.8)
+    {\textbf{ml-engine}\\IsoForest $\cdot$ Pearson\\OLS breach};
+\node[aiop] (llm) at (16.0,  1.8)
+    {\textbf{llm-engine}\\Qwen2.5-3B / Ollama\\+ LoRA};
+
+%% ── AIOps pipeline: Row B ────────────────────────────────────────────
+\node[aiop] (de) at (3.6,  -1.6) {\textbf{decision-engine}\\policy gating};
+\node[aiop] (re) at (8.4,  -1.6) {\textbf{remediation-engine}\\K8s actions};
+\node[aiop] (as) at (13.2, -1.6) {\textbf{alerting-service}\\health scores};
+\node[aiop] (fb) at (18.0, -1.6) {\textbf{feedback-service}\\MLflow $\cdot$ LoRA};
+
+\begin{scope}[on background layer]
+  \node[draw=orange!50, dashed, rounded corners=5pt, fill=orange!3, inner sep=11pt,
+        fit=(tc)(sp)(ml)(llm)(de)(re)(as)(fb),
+        label={[font=\small\bfseries,orange!70!black]below:AIOps Analysis Layer
+               \upshape(\texttt{aiops} namespace)}] (aiopsbox) {};
+\end{scope}
+
+%% Kafka → AIOps (three entry points)
+\draw[arr]  (kafka.south -| tc.north) -- (tc.north);
+\draw[darr] (kafka.south -| as.north) -- (as.north);
+\draw[darr] (kafka.south -| fb.north) -- (fb.north);
+
+%% Row A pipeline
+\draw[arr] (tc.east)  -- (sp.west);
+\draw[arr] (sp.east)  -- (ml.west);
+\draw[arr] (ml.east)  -- (llm.west);
+
+%% ML + LLM → Decision Engine
+\draw[arr] (ml.south)  -- ++(0,-0.7) -| (de.north);
+\draw[arr] (llm.south) -- ++(0,-0.7) -| (de.north);
+
+%% Row B pipeline
+\draw[arr] (de.east) -- (re.west);
+\draw[arr] (re.east) -- (as.west);
+
+%% Decision Engine → Kafka (straight up)
+\draw[darr] (de.north) -- (de.north |- kafka.south);
+
+%% LoRA fine-tuning feedback loop — routed around the right edge
+\draw[-Stealth, semithick, dashed, orange!80!black]
+    (fb.east) -- ++(1.2,0)
+    |- node[font=\scriptsize\itshape, right, pos=0.25]{LoRA fine-tune}
+    (llm.east);
+
+\end{tikzpicture}%
+}
+\caption{AMLOps-AIOps platform architecture. AML domain services (blue) publish
+compliance events to Kafka via the outbox pattern and push telemetry to the
+observability stack (green). The AIOps pipeline (orange) processes signals
+through: Telemetry Collector $\to$ Stream Processor $\to$ ML Engine $\to$ LLM
+Engine $\to$ Decision Engine $\to$ Remediation Engine. Dashed arrows denote
+asynchronous Kafka flows and OTLP pushes; the Feedback Service closes the loop
+by uploading LoRA adapter weights trained on resolved incident outcomes back to
+the LLM Engine.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Problem Formulation}
+
+\mypara{Microservices Model.}
+Let $\mathcal{S} = \{s_1, s_2, \ldots, s_N\}$ denote the set of $N$
+microservices deployed in the Kubernetes cluster ($N{=}11$ in this platform).
+Service interactions are partitioned into two coupling modes: synchronous
+REST/gRPC request-response calls and asynchronous Kafka publish-subscribe flows.
+These interactions define a directed service dependency graph
+$\mathcal{G} = (\mathcal{S}, \mathcal{E})$, where the directed edge
+$(s_i, s_j) \in \mathcal{E}$ exists if $s_i$ directly invokes $s_j$ via
+HTTP/gRPC, or if $s_i$ produces to a Kafka topic consumed by $s_j$. In the AML
+testbed the primary synchronous chain is \textit{customer-kyc} $\to$
+\textit{transaction-monitoring} $\to$ \textit{case-management}; asynchronous
+edges connect each AML service to the AIOps pipeline through domain-event Kafka
+topics. The AIOps analysis subgraph is itself a directed acyclic pipeline:
+$\textit{tc} \to \textit{sp} \to \textit{ml\text{-}engine} \to
+\textit{llm\text{-}engine} \to \textit{decision\text{-}engine} \to
+\textit{remediation\text{-}engine}$, with the \textit{feedback-service} closing
+an asynchronous LoRA-refinement loop back to the \textit{llm-engine}.
+
+Fault propagation in $\mathcal{G}$ is directional: degradation in service
+$s_i$ induces cascading latency inflation or error-rate increases in all
+services reachable from $s_i$ via directed paths. Let
+$\mathcal{N}(s_i) = \{s_j \in \mathcal{S} \mid s_i \xrightarrow{*} s_j
+\text{ in } \mathcal{G}\}$ denote the reachability set of $s_i$, where
+$\xrightarrow{*}$ denotes the reflexive-transitive closure of $\mathcal{E}$.
+The Root Cause Ranking algorithm (Problem~2) exploits this by restricting
+Pearson correlation search to pairs $(s_j, m_k)$ where
+$s_j \in \mathcal{N}(s_{\text{anom}})$, reducing the candidate space from
+$O(N \cdot K)$ to $O(|\mathcal{N}(s_{\text{anom}})| \cdot K)$, where $K$ is
+the number of distinct metric names. The runtime topology of $\mathcal{G}$ is
+reconstructed continuously from trace parent-child span relationships propagated
+through OpenTelemetry W3C TraceContext~\cite{w3ctracecontext2021} headers and
+from Kafka consumer-group registrations observed by the Telemetry Collector.
+
+Each service $s_i$ continuously emits telemetry across three modalities:
+metric time series scraped by Prometheus at 15-second intervals, log streams
+collected by Loki, and distributed trace spans pushed to Grafana Tempo via
+OTLP. Let $\mathcal{T}^{(t)} = \langle \mathbf{M}^{(t)},\, \mathbf{L}^{(t)},\,
+\mathbf{D}^{(t)} \rangle$ denote the multi-modal telemetry context assembled at
+analysis cycle $t$, where:
+\begin{itemize}
+    \item $\mathbf{M}^{(t)} \in \mathbb{R}^{P \times \Delta}$ is the matrix of
+          $P$ Prometheus metric time series sampled over window $\Delta$;
+    \item $\mathbf{L}^{(t)} = \{l_j\}_{j=1}^{Q}$ is the set of $Q$ structured
+          log entries within $[t-\Delta,\, t]$;
+    \item $\mathbf{D}^{(t)} = \{d_k\}_{k=1}^{R}$ is the set of $R$ trace spans,
+          each as a tuple $\langle$\textit{service},
+          \textit{duration}, \textit{status},
+          \textit{parent\_id}$\rangle$.
+\end{itemize}
+
+An \textit{operational anomaly} in service $s_i$ at cycle $t$ is any windowed
+feature observation $\boldsymbol{\varphi}_i^{(t)}$ whose probability under the
+normal-behaviour distribution $\mathcal{P}_{\text{normal}}$ falls below
+detection threshold $\epsilon$:
+\begin{equation}
+    \mathrm{anomaly}(s_i, t) \;\Leftrightarrow\;
+    P_{\mathcal{P}_{\text{normal}}}\!\bigl(\boldsymbol{\varphi}_i^{(t)}\bigr) < \epsilon
+    \label{eq:anomaly_def}
+\end{equation}
+Since $\mathcal{P}_{\text{normal}}$ is non-stationary---service load profiles
+shift with time-of-day, rolling deployments, and demand spikes---and the
+feature space is high-dimensional, parametric density estimation is intractable.
+Isolation Forest provides a computationally efficient surrogate via average path
+length in random isolation trees, without requiring a parametric distributional
+assumption. The five problems below formalise each component of the closed-loop
+detection-to-remediation pipeline.
+
+The Stream Processor computes 60-second tumbling-window aggregates over raw
+metric signals, producing a four-dimensional feature vector for each
+(service, metric) pair:
+\begin{equation}
+    \boldsymbol{\varphi}^{(t)}_{ij} =
+    [\,\mu_{ij},\; x^{\max}_{ij},\; \dot{x}_{ij},\; n_{ij}\,]^\top \in \mathbb{R}^4
+    \label{eq:features}
+\end{equation}
+where $\mu_{ij}$ is the window mean (\texttt{avg\_value}), $x^{\max}_{ij}$ is
+the window maximum (\texttt{max\_value}), $\dot{x}_{ij}$ is the rate of change
+(\texttt{rate\_of\_change}), and $n_{ij}$ is the sample count
+(\texttt{sample\_count}). Let $\boldsymbol{\Phi}^{(t)} =
+\{\boldsymbol{\varphi}^{(t)}_{ij}\}$ denote the feature matrix over all
+monitored (service, metric) pairs.
+
+\mypara{Problem 1 (Anomaly Detection).}
+Given a feature vector $\boldsymbol{\varphi}^{(t)} \in \mathbb{R}^4$, produce
+an anomaly score $s^{(t)} \in [0,1]$. The score is derived from an Isolation
+Forest~\cite{liu2012isolation} decision function $d(\cdot)$ trained with
+contamination parameter $\gamma{=}0.05$:
+\begin{equation}
+    s^{(t)} = \max\!\left(0,\;\min\!\left(1,\;0.5 - d\!\left(\boldsymbol{\varphi}^{(t)}\right)\right)\right)
+    \label{eq:anomaly}
+\end{equation}
+where $d(\boldsymbol{\varphi}) > 0$ for normal points and
+$d(\boldsymbol{\varphi}) < 0$ for anomalies in sklearn~\cite{sklearn2011}
+convention. A binary anomaly flag is raised when $s^{(t)} > \theta_{\text{anom}}$
+(default $\theta_{\text{anom}} = 0.5$). The model is bootstrapped on 500
+synthetic samples at startup and refitted when 50 new labelled samples
+accumulate from operator feedback.
+
+\mypara{Problem 2 (Root Cause Ranking).}
+When an anomaly is detected in service $s_i$, rank all other (service, metric)
+pairs by their correlation with the anomalous reference trajectory. Let
+$\mathbf{x}_{\text{ref}} = [\mu_{i}(1), \ldots, \mu_{i}(W)] \in \mathbb{R}^W$
+be the sliding-window mean trajectory of the anomalous service ($W{=}100$
+observations), and let $\mathbf{y}_{jk} = [\mu_{jk}(1), \ldots, \mu_{jk}(W)]$
+be the corresponding trajectory for service $s_j$, metric $m_k$. The Pearson
+correlation is computed as:
+\begin{equation}
+    r_{jk} = \frac{\displaystyle\sum_{t=1}^{W}\!\left(x_{\text{ref}}(t) -
+    \bar{x}_{\text{ref}}\right)\!\left(y_{jk}(t) - \bar{y}_{jk}\right)}
+    {W\,\hat{\sigma}_{\text{ref}}\,\hat{\sigma}_{jk}}
+    \label{eq:rca}
+\end{equation}
+where $\hat{\sigma}_{\text{ref}}$ and $\hat{\sigma}_{jk}$ are sample standard
+deviations. Root cause candidates are ranked by $|r_{jk}|$ in descending order
+and the top-10 pairs are reported as the root cause ranking.
+
+\mypara{Problem 3 (SLO Breach Prediction).}
+Monitor the p95 response latency of each service over a sliding window of
+$W_b{=}10$ observations at 30-second intervals. Fit an ordinary least-squares
+regression:
+\begin{equation}
+    \hat{p}_{95}(t) = \beta_0 + \beta_1\,t, \quad t \in \{0,1,\ldots,W_b{-}1\}
+    \label{eq:breach}
+\end{equation}
+If $\hat{\beta}_1 > 0$ (latency increasing trend), predict the SLO breach
+time as:
+\begin{equation}
+    \hat{T}_{\text{breach}} = \frac{\theta_{\text{SLO}} - \hat{\beta}_0}{\hat{\beta}_1}
+    \label{eq:eta}
+\end{equation}
+where $\theta_{\text{SLO}} = 500\,\text{ms}$ is the configurable p95 latency
+SLO threshold. If $\hat{\beta}_1 \leq 0$, no breach is predicted and
+$\hat{T}_{\text{breach}}$ is set to the sentinel value $999$ (NO\_BREACH).
+
+\mypara{Problem 4 (LLM Incident Narration).}
+Assemble a MELT context window $\mathcal{C}^{(t)}$ comprising:
+(i)~a metric feature buffer $\mathbf{M}_{\text{buf}}^{(t)}$ of recent
+stream-window aggregates, (ii)~a log buffer $\mathbf{L}_{\text{buf}}^{(t)}$
+(deque of last 10 Loki log entries), and (iii)~a trace buffer
+$\mathbf{T}_{\text{buf}}^{(t)}$ (deque of last 5 trace spans). Given the
+current incident record $\mathcal{I}^{(t)}$ from the ML Engine, the LLM
+produces a structured report:
+\begin{equation}
+    \mathcal{R} = f_{\text{LoRA}}\!\left(\mathcal{P}\!\left(\mathcal{I}^{(t)},\,
+    \mathcal{C}^{(t)}\right)\right)
+    \label{eq:llm}
+\end{equation}
+where $f_{\text{LoRA}}$ is Qwen2.5-3B~\cite{qwen2024} fine-tuned with LoRA
+adapters~\cite{hu2022lora} via the PEFT library~\cite{peft2022} and served
+through Ollama~\cite{ollama2023}, and $\mathcal{P}(\cdot)$ is the structured
+prompt template. The output $\mathcal{R}$ conforms to the fixed JSON schema:
+\{\texttt{explanation}, \texttt{rootCause}, \texttt{recommendation},
+\texttt{amlRisk}, \texttt{confidence}\}.
+
+\mypara{Problem 5 (Decision Policy).}
+Given the ML/LLM outputs, the Decision Engine selects a remediation action
+through a piecewise policy on confidence $c$, blast radius
+$B \in \{\text{LOW}, \text{MEDIUM}, \text{HIGH}\}$ (determined by affected
+service count), and breach ETA $\hat{T}_{\text{breach}}$:
+\begin{equation}
+    \pi(c, B, \hat{T}) =
+    \begin{cases}
+      \textsc{scale-out},   & c > 0.90,\; B{=}\text{LOW},\; \hat{T} < 5 \\
+      \textsc{restart-pod}, & c > 0.90,\; B{=}\text{LOW},\; \hat{T} \geq 5 \\
+      \textsc{scale-out},   & c > 0.75,\; B{=}\text{MEDIUM} \\
+      \textsc{escalate},    & \text{otherwise}
+    \end{cases}
+    \label{eq:policy}
+\end{equation}
+Actions are executed autonomously when auto-execute is true; otherwise an
+\textsc{escalate} event is published for human review.
+
+\mypara{Problem 6 (Service Health Score).}
+The Alerting Service maintains a per-service health score
+$h_i(t) \in [0.05, 1]$ that aggregates pod liveness, JVM CPU utilisation, and
+process-level CPU rate into a single scalar used by the Decision Engine to
+determine blast-radius class $B$:
+\begin{equation}
+    h_i(t) = \max\!\bigl(0.05 \cdot u_i(t),\; c_i^{\text{JVM}}(t),\;
+    \dot{c}_i^{\text{sys}}(t)\bigr)
+    \label{eq:health}
+\end{equation}
+where $u_i(t) \in \{0,1\}$ is the Kubernetes \texttt{up} indicator for service
+$s_i$, $c_i^{\text{JVM}}(t) \in [0,1]$ is the normalised
+\texttt{process\_cpu\_usage} reported by Micrometer (Spring Boot services), and
+$\dot{c}_i^{\text{sys}}(t) = \Delta\texttt{process\_cpu\_seconds\_total}/\Delta t$
+is the derivative-based CPU rate from the Prometheus cAdvisor exporter (Python
+services). The floor term $0.05 \cdot u_i(t)$ ensures a running-but-idle pod
+registers a minimal positive signal, distinguishing it from a crashed pod
+($u_i(t){=}0 \Rightarrow h_i(t){=}0$). A service $s_i$ is classified as
+\textit{actively degraded} if $h_i(t) > \mu_{h_i} + 2\sigma_{h_i}$ over the
+preceding $W_h{=}20$ observations; the count of actively degraded services in
+the incident determines $B$.
+
+\subsection{Architecture Components}
+
+\mypara{AML Domain Services.}
+The \textit{transaction-monitoring} service evaluates each ingested transaction
+against four parameterised AML rules: AML-101 (high-value single transaction),
+AML-202 (velocity---many small transactions), AML-303
+(structuring---amounts just below reporting thresholds), and AML-404
+(high-risk corridor transfers). Individual rule scores $c_r \in [0, 100]$ are
+combined using a diminishing-returns formula that prevents any single rule from
+dominating:
+\begin{equation}
+    R = 100 \cdot \left(1 - \prod_{r \in \mathcal{R}_{\text{fired}}}
+    \left(1 - \frac{c_r}{100}\right)\right)
+    \label{eq:aml}
+\end{equation}
+The resulting composite risk score $R \in [0, 100]$ determines whether a case
+is opened in the \textit{case-management} service. Case states follow the
+machine: \textsc{open} $\to$ \textsc{under-investigation} $\to$
+\textsc{escalated} $\to$ \textsc{pending-review} $\to$ \textsc{closed}, with
+each transition emitted as an OpenTelemetry span event that simultaneously
+labels the corresponding Prometheus metric window as anomalous.
+
+\mypara{Telemetry Collector.}
+The Telemetry Collector (Spring Boot) is the normalisation gateway for all
+Kafka event streams. It maintains listeners across all AIOps topics including
+the dedicated \texttt{aiops.service.heartbeat} channel, to which each of the
+eight AIOps services publishes every 30~seconds. Heterogeneous event payloads
+are converted to a canonical \texttt{MetricSignal} format with fields
+\{\texttt{service}, \texttt{metricName}, \texttt{value}, \texttt{labels}\},
+consumed uniformly by downstream components and Prometheus scraping.
+
+\mypara{Stream Processor.}
+The Stream Processor (Spring Boot, Kafka Streams) applies 60-second
+tumbling-window aggregation over ingested metric signals, computing
+Equation~\ref{eq:features} per (service, metricName) key and publishing the
+resulting feature records to the \texttt{aiops.features} topic. These feature
+records are the direct input to the ML Engine's anomaly detector.
+
+\mypara{ML Engine.}
+The ML Engine (Python FastAPI~\cite{fastapi2018}) hosts the three-algorithm
+pipeline. (i)~\textit{Anomaly Detection}: Isolation Forest (contamination
+$\gamma{=}0.05$, Equation~\ref{eq:anomaly}) trained in an online fashion; 500
+synthetic bootstrap samples initialise the model at startup.
+(ii)~\textit{Root Cause Ranking}: Pearson correlation over per-(service, metric)
+sliding buffers of $W{=}100$ observations (Equation~\ref{eq:rca}), returning
+the top-10 most correlated (service, metric) pairs as the root cause ranking.
+(iii)~\textit{SLO Breach Prediction}: OLS regression on the last $W_b{=}10$
+p95 latency values sampled every 30~seconds
+(Equations~\ref{eq:breach}--\ref{eq:eta}), projecting time-to-SLO-violation
+in minutes. Detected incidents are serialised and published to
+\texttt{aiops.incidents} for downstream consumption.
+
+\mypara{LLM Engine.}
+The LLM Engine (Python FastAPI) implements Equation~\ref{eq:llm}. It maintains
+three MELT buffers: \texttt{metric\_buffer} (dict of recent feature values),
+\texttt{log\_buffer} (deque of 10 recent Loki entries consumed from
+\texttt{aiops.telemetry.logs}), and \texttt{trace\_buffer} (deque of 5 recent
+spans from \texttt{aiops.telemetry.traces}). On incident consumption from
+\texttt{aiops.incidents}, the engine assembles the full MELT prompt and queries
+Qwen2.5-3B~\cite{qwen2024} via the Ollama~\cite{ollama2023} REST API
+(\texttt{http://ollama:11434}). LoRA adapter weights~\cite{hu2022lora}, trained
+via the PEFT library~\cite{peft2022} on resolved incident outcome records from
+\texttt{aiops.outcomes}, are applied through the Ollama model loading mechanism.
+The output JSON is published to \texttt{aml.llm.analysis}.
+
+\mypara{Decision Engine and Remediation Engine.}
+The Decision Engine (Spring Boot) consumes \texttt{aiops.incidents} and
+\texttt{aml.llm.analysis}, applies the piecewise policy
+(Equation~\ref{eq:policy}), and publishes \texttt{RemediationDecision} records
+to \texttt{aiops.decisions}. Blast radius is computed as: one affected service
+$\to$ LOW; two $\to$ MEDIUM; three or more $\to$ HIGH. The Remediation Engine
+subscribes to \texttt{aiops.decisions} and executes autonomous Kubernetes API
+actions---pod restarts, HPA target adjustments---while publishing execution
+outcomes to \texttt{aiops.actions}.
+
+\mypara{Alerting Service and Feedback Service.}
+The Alerting Service maintains a per-service health score endpoint combining
+incident frequency (from \texttt{aiops.incidents}) with live Prometheus CPU
+utilisation, queried via the Prometheus HTTP API. The score is the maximum
+over: a floor of 0.05 for any running pod (\texttt{up}$=1$), the raw
+\texttt{process\_cpu\_usage} (JVM), and the rate of
+\texttt{process\_cpu\_seconds\_total} (Python). The Feedback Service captures
+SLO outcome comparisons (before/after remediation via Prometheus queries),
+labels each outcome as \textsc{resolved}, \textsc{no\_effect}, or
+\textsc{degraded\_further}, logs to MLflow~\cite{mlflow2018}, and publishes
+records to \texttt{aiops.outcomes} for LoRA fine-tuning of the LLM Engine.
+
+\mypara{Platform Integration and Latency Budget.}
+All tunable parameters---contamination factor $\gamma$, sliding window widths
+$W$ and $W_b$, SLO threshold $\theta_{\text{SLO}}$, anomaly threshold
+$\theta_{\text{anom}}$, and auto-execute flag---are exposed as Kubernetes
+ConfigMap entries, enabling live parameter adjustment without service restart.
+Inter-component communication follows a strict write-discipline: AML services
+only produce to domain-event topics; AIOps services only consume from those
+topics and produce to analysis topics; the Remediation Engine is the sole
+service holding Kubernetes API write permissions. The end-to-end latency from
+fault onset to first autonomous remediation action decomposes as: Prometheus
+scrape lag ($\leq 15$\,s) + Kafka propagation ($< 1$\,s) + stream-window
+accumulation (60\,s) + ML inference ($< 1$\,s) + LLM narration (3--5\,s on
+CPU) + Kafka decision round-trip ($< 1$\,s) + Kubernetes API action ($< 2$\,s),
+yielding a worst-case detection-to-action latency of approximately 83--85\,s
+under quiescent cluster conditions.
+
+\section{Experimental Evaluation}
+\label{sec:eval}
+
+\subsection{Experimental Setup}
+
+The platform is deployed on a single-node Docker Desktop Kubernetes cluster
+(Windows~11 Pro, 16~GB RAM, 8~vCPUs, Kubernetes~v1.29). The eleven application
+services are distributed across the \texttt{aml} and \texttt{aiops} namespaces;
+the observability stack is deployed in the \texttt{monitoring} namespace via
+Helm~\cite{helm2016} charts. Kafka is operated by the Strimzi
+operator~\cite{strimzi2019} with a three-partition, replication-factor-3
+configuration. A synthetic AML workload is generated using k6~\cite{k62017},
+sustaining 50 requests per second across customer registration, transaction
+submission, and case management endpoints to produce a stable baseline signal
+envelope.
+
+All AML services are instrumented with Micrometer~\cite{micrometer2018} and the
+OpenTelemetry Java agent, exporting spans via OTLP to Tempo and publishing
+structured logs via Logback~\cite{logback2006} to Loki. Prometheus scrapes all
+service endpoints at 15-second intervals. The LLM Engine runs
+Qwen2.5-3B~\cite{qwen2024} via Ollama~\cite{ollama2023} on CPU within the
+cluster, with LoRA adapter weights~\cite{hu2022lora} loaded from a Kubernetes
+PersistentVolume.
+
+\subsection{Fault Injection Protocol}
+
+Controlled faults are injected via Chaos Mesh~\cite{chaosmesh2020} targeting
+specific service edges in the \texttt{aml} namespace. Four fault classes are
+evaluated: (i)~\textit{latency anomalies}---500~ms Kafka consumer delays
+injected into transaction-monitoring; (ii)~\textit{resource anomalies}---CPU
+stress injection on case-management pods to trigger JVM throttling;
+(iii)~\textit{functional anomalies}---deployment of a corrupted AML rule
+configuration causing systematic transaction misclassification; and
+(iv)~\textit{causal cascade anomalies}---forced scale-to-zero of customer-kyc,
+propagating KYC check failures into case-management. For each injection, the
+ground-truth fault time $T_0$ is recorded at the Chaos Mesh API level and the
+first detection time $T_d$ is recorded when the Decision Engine emits a
+corresponding incident. Evaluation metrics are detection latency ($T_d - T_0$),
+precision, recall, and F1 over a 24-hour injection window.
+
+\textbf{RQ1} (Signal Sufficiency): The telemetry pipeline is evaluated in three
+configurations---metrics-only, metrics\,+\,logs, and all three
+pillars---to determine the minimum sufficient modality combination for reliable
+anomaly detection across the four fault classes.
+
+\textbf{RQ2} (Root Cause Localisation): Pearson correlation root cause ranking
+is compared against two single-modal baselines: (a)~a threshold-based metric
+spike detector and (b)~a trace error-rate ranker. Localisation accuracy (top-1
+and top-3 correct service identification) is reported per fault class.
+
+\textbf{RQ3} (Tracing Overhead): Request throughput, p95 latency, and pod CPU
+utilisation are measured across four sampling rates (0\%, 10\%, 50\%, 100\%)
+to characterise the operational cost of full-fidelity tracing in regulated
+workloads.
+
+\subsection{Preliminary Results}
+
+Full quantitative evaluation of RQ1--RQ3 is ongoing as part of the PhD research
+programme. Preliminary system validation confirms: (i)~the telemetry pipeline
+correctly ingests and normalises events from all eleven services, with
+30-second heartbeat signals confirmed on \texttt{aiops.service.heartbeat} for
+every AIOps service; (ii)~the ML Engine detects injected CPU stress anomalies
+within two 60-second analysis cycles ($\approx$120~seconds) by observing the
+\texttt{avg\_value} and \texttt{rate\_of\_change} feature dimensions;
+(iii)~the health scoring endpoint reflects per-service anomaly and CPU states
+consistently with configured load profiles, with AML services under Chaos Mesh
+CPU stress exhibiting health score degradation within two cycles; and (iv)~the
+LLM Engine produces valid JSON incident reports conforming to the output schema
+for all manually constructed test telemetry contexts, with the Qwen2.5-3B model
+running entirely within the cluster at approximately 3--5 seconds per inference
+on CPU. These results confirm the platform's fitness as a reproducible
+experimental substrate for the quantitative evaluations described above. The
+CPU-bound LLM inference time (3--5\,s per report on an 8-vCPU, 16\,GB RAM
+node) is consistent with online narration at the observed fault frequency of one
+detectable incident per 120-second detection cycle under the injected fault
+regime, yielding no backlog under normal operations. The absence of external
+network calls throughout the detection-to-report pipeline---verified by
+Kubernetes NetworkPolicy audit logs showing zero egress rejections during a
+2-hour fault-injection session---validates the data-residency compliance
+posture required for AML environments.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have presented an observability-driven AIOps platform for automated anomaly
+detection, root cause ranking, and SLO breach prediction in cloud-native
+Kubernetes microservices, with particular emphasis on AML compliance
+environments where data residency constraints prohibit external telemetry
+export. The platform integrates three lightweight ML
+algorithms---Isolation Forest anomaly scoring, Pearson correlation root cause
+ranking, and OLS-based breach prediction---with a locally deployed, LoRA-fine-tuned
+Qwen2.5-3B language model served via Ollama, operating entirely within the
+Kubernetes cluster with no external API dependencies. The AML microservices
+testbed addresses a persistent weakness in AIOps evaluation methodology by
+providing semantically labelled ground-truth telemetry derived from compliance
+domain state transitions via OpenTelemetry span attributes, eliminating the
+need for synthetic benchmarks or secondary annotation. The platform is fully
+open-source, deployed with standard Kubernetes tooling, and designed for
+reproducibility.
+
+Future work will complete quantitative evaluation of the three research
+questions: a cross-modal ablation study to identify the minimum sufficient
+telemetry combination~(RQ1), a comparison of Pearson correlation RCA against
+single-modal spike and error-rate baselines across the four fault classes~(RQ2),
+and a tracing overhead profile across sampling rates from 0\% to 100\%~(RQ3).
+Extensions to multi-node Kubernetes deployments will characterise how detection
+latency and false-positive rates scale with service count beyond the
+single-node prototype. Federated fine-tuning of the LoRA adapters across
+multiple AML deployments---without centralising raw telemetry---represents a
+promising direction for privacy-preserving model improvement at scale.
+
+\bibliography{references}
+
+\end{document}

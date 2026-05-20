@@ -1,0 +1,235 @@
+\begin{thebibliography}{10}
+
+\bibitem{boten2022cloudnative}
+Alex Boten.
+\newblock {\em Cloud-Native Observability with {OpenTelemetry}}.
+\newblock Packt Publishing, 2022.
+
+\bibitem{prometheus2015}
+Brian Brazil.
+\newblock {\em Prometheus: Up \& Running}.
+\newblock O'Reilly Media, 2nd edition, 2022.
+
+\bibitem{micrometer2018}
+{Broadcom, Inc.}
+\newblock {Micrometer}: {JVM} application metrics, 2018.
+\newblock [Online]. Available:~\url{https://micrometer.io}.
+
+\bibitem{burns2016borg}
+Brendan Burns, Brian Grant, David Oppenheimer, Eric Brewer, and John Wilkes.
+\newblock Borg, omega, and {Kubernetes}.
+\newblock {\em ACM Queue}, 14(1):70--93, 2016.
+\newblock \href {https://doi.org/10.1145/2890784} {\path{doi:10.1145/2890784}}.
+
+\bibitem{chaosmesh2020}
+{Chaos Mesh Authors}.
+\newblock {Chaos Mesh}: A powerful chaos engineering platform for {Kubernetes},
+  2020.
+\newblock [Online]. Available:~\url{https://chaos-mesh.org}.
+
+\bibitem{dang2019aiops}
+Yingnong Dang, Qingwei Lin, and Peng Huang.
+\newblock {AIOps}: Real-world challenges and research innovations.
+\newblock In {\em Proc. IEEE/ACM ICSE-SEIP}, pages 4--5, 2019.
+\newblock \href {https://doi.org/10.1109/ICSE-SEIP.2019.00023}
+  {\path{doi:10.1109/ICSE-SEIP.2019.00023}}.
+
+\bibitem{datadog2023}
+{Datadog}.
+\newblock Watchdog: Algorithmic performance management, 2024.
+\newblock [Online].
+  Available:~\url{https://www.datadoghq.com/product/watchdog/}.
+
+\bibitem{dynatrace2023}
+{Dynatrace}.
+\newblock Davis {AI}: Automatic, intelligent observability, 2024.
+\newblock [Online].
+  Available:~\url{https://www.dynatrace.com/platform/artificial-intelligence/}.
+
+\bibitem{evans2003ddd}
+Eric Evans.
+\newblock {\em Domain-Driven Design: Tackling Complexity in the Heart of
+  Software}.
+\newblock Addison-Wesley, 2003.
+
+\bibitem{k62017}
+{Grafana Labs}.
+\newblock {k6}: Open-source load testing tool, 2017.
+\newblock [Online]. Available:~\url{https://k6.io}.
+
+\bibitem{loki2019}
+{Grafana Labs}.
+\newblock Loki: Like {Prometheus}, but for logs, 2019.
+\newblock [Online]. Available:~\url{https://grafana.com/oss/loki/}.
+
+\bibitem{tempo2022}
+{Grafana Labs}.
+\newblock Grafana {Tempo}: High-scale distributed tracing backend, 2022.
+\newblock [Online]. Available:~\url{https://grafana.com/oss/tempo/}.
+
+\bibitem{logback2006}
+Ceki G{\"u}lc{\"u}.
+\newblock {Logback}: {Java} logging framework, 2006.
+\newblock [Online]. Available:~\url{https://logback.qos.ch}.
+
+\bibitem{han2024holistic}
+Yuliang Han, Qiang Du, Yunjie Huang, Peipeng Li, Xinyuan Shi, Jiangfeng Wu,
+  Ping Fang, Feng Tian, and Changjian He.
+\newblock Holistic root cause analysis for failures in cloud-native systems
+  through observability data.
+\newblock {\em IEEE Transactions on Services Computing}, 17(6):3518--3531,
+  2024.
+\newblock \href {https://doi.org/10.1109/TSC.2024.3419107}
+  {\path{doi:10.1109/TSC.2024.3419107}}.
+
+\bibitem{he2021bert}
+Shilin He, Pinjia He, Zhuangbin Chen, Tianyi Yang, Yuxin Su, and Michael~R.
+  Lyu.
+\newblock A survey on automated log analysis for reliability engineering.
+\newblock {\em ACM Computing Surveys}, 54(6):1--37, 2021.
+\newblock \href {https://doi.org/10.1145/3460345} {\path{doi:10.1145/3460345}}.
+
+\bibitem{hu2022lora}
+Edward~J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+  Wang, Lu~Wang, and Weizhu Chen.
+\newblock {LoRA}: Low-rank adaptation of large language models.
+\newblock In {\em Proc. ICLR}, 2022.
+\newblock URL: \url{https://arxiv.org/abs/2106.09685}.
+
+\bibitem{peft2022}
+{Hugging Face}.
+\newblock {PEFT}: State-of-the-art parameter-efficient fine-tuning, 2022.
+\newblock [Online]. Available:~\url{https://github.com/huggingface/peft}.
+
+\bibitem{kosinska2023toward}
+Joanna Kosinska, Bartosz Balis, Michal Konieczny, Maciej Malawski, and Slawomir
+  Zielinski.
+\newblock Toward the observability of cloud-native applications: The overview
+  of the state-of-the-art.
+\newblock {\em IEEE Access}, 11:26800--26825, 2023.
+\newblock \href {https://doi.org/10.1109/ACCESS.2023.3281860}
+  {\path{doi:10.1109/ACCESS.2023.3281860}}.
+
+\bibitem{kafka2011}
+Jay Kreps, Neha Narkhede, and Jun Rao.
+\newblock Kafka: A distributed messaging system for log processing.
+\newblock In {\em Proc. NetDB Workshop at VLDB}, 2011.
+\newblock URL: \url{https://kafka.apache.org/}.
+
+\bibitem{liu2020unsupervised}
+Dixin Liu, Ying Chen, Xin Yan, and Mingjun Zhao.
+\newblock Unsupervised detection of microservice trace anomalies through
+  service-level deep {Bayesian} networks.
+\newblock In {\em Proc. IEEE ISSRE}, 2020.
+\newblock \href {https://doi.org/10.1109/ISSRE5003.2020.00014}
+  {\path{doi:10.1109/ISSRE5003.2020.00014}}.
+
+\bibitem{liu2012isolation}
+Fei~Tony Liu, Kai~Ming Ting, and Zhi-Hua Zhou.
+\newblock Isolation-based anomaly detection.
+\newblock {\em ACM Trans. Knowledge Discovery from Data}, 6(1):1--39, 2012.
+\newblock \href {https://doi.org/10.1145/2133360.2133363}
+  {\path{doi:10.1145/2133360.2133363}}.
+
+\bibitem{lomio2022anomaly}
+Francesco Lomio, Sergio Moreschini, Xiaozhou Li, and Valentina Lenarduzzi.
+\newblock Anomaly detection in cloud-native systems.
+\newblock In {\em Proc. 48th Euromicro Conf. Software Engineering and Advanced
+  Applications (SEAA)}, pages 290--297, 2022.
+\newblock \href {https://doi.org/10.1109/SEAA56994.2022.00023}
+  {\path{doi:10.1109/SEAA56994.2022.00023}}.
+
+\bibitem{malhotra2016lstm}
+Pankaj Malhotra, Ankita Ramakrishnan, Gaurangi Anand, Lovekesh Vig, Puneet
+  Agarwal, and Gautam Shroff.
+\newblock {LSTM}-based encoder-decoder for multi-sensor anomaly detection.
+\newblock In {\em ICML Anomaly Detection Workshop}, 2016.
+\newblock URL: \url{https://arxiv.org/abs/1607.00148}.
+
+\bibitem{ollama2023}
+{Ollama}.
+\newblock Ollama: Get up and running with large language models, 2024.
+\newblock [Online]. Available:~\url{https://ollama.com}.
+
+\bibitem{opentelemetry2023}
+{OpenTelemetry Authors}.
+\newblock {OpenTelemetry} specification, 2025.
+\newblock [Online]. Available:~\url{https://opentelemetry.io/docs/specs/}.
+
+\bibitem{sklearn2011}
+Fabian Pedregosa, Ga{\"e}l Varoquaux, Alexandre Gramfort, Vincent Michel,
+  Bertrand Thirion, Olivier Grisel, Mathieu Blondel, Peter Prettenhofer, Ron
+  Weiss, Vincent Dubourg, Jake Vanderplas, Alexandre Passos, David Cournapeau,
+  Matthieu Brucher, Matthieu Perrot, and {\'E}douard Duchesnay.
+\newblock Scikit-learn: Machine learning in {Python}.
+\newblock {\em Journal of Machine Learning Research}, 12:2825--2830, 2011.
+\newblock \href {https://doi.org/10.5555/1953048.2078195}
+  {\path{doi:10.5555/1953048.2078195}}.
+
+\bibitem{qi2023loggpt}
+Ziwei Qi, Xiao Ma, Junfeng Xu, Weinan E, Haifeng Lin, and Tong Liu.
+\newblock {LogGPT}: Log anomaly detection via {GPT}.
+\newblock In {\em Proc. IEEE BigData}, 2023.
+\newblock URL: \url{https://arxiv.org/abs/2309.14482}.
+
+\bibitem{qwen2024}
+{Qwen Team}.
+\newblock Qwen2.5 technical report.
+\newblock {\em arXiv preprint arXiv:2412.15115}, 2024.
+\newblock URL: \url{https://arxiv.org/abs/2412.15115}, \href
+  {https://doi.org/10.48550/arXiv.2412.15115}
+  {\path{doi:10.48550/arXiv.2412.15115}}.
+
+\bibitem{fastapi2018}
+Sebasti{\'a}n Ram{\'i}rez.
+\newblock {FastAPI}: Modern, fast web framework for {APIs} with {Python}, 2018.
+\newblock [Online]. Available:~\url{https://fastapi.tiangolo.com}.
+
+\bibitem{richardson2018microservices}
+Chris Richardson.
+\newblock {\em Microservices Patterns}.
+\newblock Manning Publications, 2018.
+
+\bibitem{sigelman2010dapper}
+Benjamin~H. Sigelman, Luiz~Andr{\'e} Barroso, Mike Burrows, Pat Stephenson,
+  Manoj Plakal, Donald Beaver, Saul Jaspan, and Chandan Shanbhag.
+\newblock Dapper, a large-scale distributed systems tracing infrastructure.
+\newblock Technical report, Google, 2010.
+\newblock URL: \url{https://research.google/pubs/pub36356/}.
+
+\bibitem{soldani2022anomaly}
+Gianluca Soldani and Antonio Brogi.
+\newblock Anomaly detection and failure root cause analysis in
+  (micro)service-based cloud applications: A survey.
+\newblock {\em ACM Computing Surveys}, 55(3):1--39, 2022.
+\newblock \href {https://doi.org/10.1145/3501297} {\path{doi:10.1145/3501297}}.
+
+\bibitem{strimzi2019}
+{Strimzi Authors}.
+\newblock {Strimzi}: {Kafka} on {Kubernetes}, 2019.
+\newblock [Online]. Available:~\url{https://strimzi.io}.
+
+\bibitem{helm2016}
+{The Helm Authors}.
+\newblock {Helm}: The {Kubernetes} package manager, 2016.
+\newblock [Online]. Available:~\url{https://helm.sh}.
+
+\bibitem{springboot2014}
+{VMware, Inc.}
+\newblock {Spring Boot} reference documentation, 2014.
+\newblock [Online]. Available:~\url{https://spring.io/projects/spring-boot}.
+
+\bibitem{w3ctracecontext2021}
+{World Wide Web Consortium}.
+\newblock Trace context, 2021.
+\newblock W3C Recommendation. [Online].
+  Available:~\url{https://www.w3.org/TR/trace-context/}.
+
+\bibitem{mlflow2018}
+Matei Zaharia, Andrew Chen, Aaron Davidson, Ali Ghodsi, Sue~Ann Hong, Andy
+  Konwinski, Siddharth Murching, Tomas Nykodym, Paul Ogilvie, Mani Parkhe, Fen
+  Xie, and Corey Zumar.
+\newblock Accelerating the machine learning lifecycle with {MLflow}.
+\newblock {\em IEEE Data Eng. Bull.}, 41(4):39--45, 2018.
+
+\end{thebibliography}
