@@ -1,8 +1,8 @@
-package com.yourbank.aiops.collector.infrastructure.kafka;
+package com.alexbank.aiops.collector.infrastructure.kafka;
 
-import com.yourbank.aiops.collector.domain.LogSignal;
-import com.yourbank.aiops.collector.domain.MetricSignal;
-import com.yourbank.aiops.collector.domain.TraceSignal;
+import com.alexbank.aiops.collector.domain.LogSignal;
+import com.alexbank.aiops.collector.domain.MetricSignal;
+import com.alexbank.aiops.collector.domain.TraceSignal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;

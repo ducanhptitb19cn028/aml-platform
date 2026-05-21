@@ -1,6 +1,6 @@
-package com.yourbank.aml.casemanagement.application;
+package com.alexbank.aml.casemanagement.application;
 
-import com.yourbank.aml.casemanagement.domain.model.CaseId;
+import com.alexbank.aml.casemanagement.domain.model.CaseId;
 
 public class CaseNotFoundException extends RuntimeException {
     public CaseNotFoundException(CaseId id) {

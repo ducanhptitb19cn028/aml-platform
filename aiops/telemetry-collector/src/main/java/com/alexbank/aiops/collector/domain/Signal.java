@@ -1,4 +1,4 @@
-package com.yourbank.aiops.collector.domain;
+package com.alexbank.aiops.collector.domain;
 
 import java.time.Instant;
 

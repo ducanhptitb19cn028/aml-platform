@@ -1,4 +1,4 @@
-package com.yourbank.aiops.decision.infrastructure.kafka;
+package com.alexbank.aiops.decision.infrastructure.kafka;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

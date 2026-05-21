@@ -518,7 +518,7 @@ application-level configuration.
 
 %% ── Apache Kafka bus ─────────────────────────────────────────────────
 \node[bus, minimum width=19.5cm] (kafka) at (9.75, 4.8)
-    {\textbf{Apache Kafka}\enspace(Strimzi Operator $\cdot$ 3 partitions)\\[5pt]
+    {\textbf{Apache Kafka}\enspace(KRaft mode $\cdot$ 3 partitions)\\[5pt]
      \texttt{aml.\{customers,\,transactions,\,cases\}.events}\enspace$\cdot$\enspace
      \texttt{aiops.telemetry.\{metrics,\,logs,\,traces\}}\enspace$\cdot$\enspace
      \texttt{aiops.\{features,\,incidents,\,decisions,\,outcomes\}}\enspace$\cdot$\enspace
@@ -898,23 +898,46 @@ under quiescent cluster conditions.
 \subsection{Experimental Setup}
 
 The platform is deployed on a single-node Docker Desktop Kubernetes cluster
-(Windows~11 Pro, 16~GB RAM, 8~vCPUs, Kubernetes~v1.29). The eleven application
-services are distributed across the \texttt{aml} and \texttt{aiops} namespaces;
-the observability stack is deployed in the \texttt{monitoring} namespace via
-Helm~\cite{helm2016} charts. Kafka is operated by the Strimzi
-operator~\cite{strimzi2019} with a three-partition, replication-factor-3
-configuration. A synthetic AML workload is generated using k6~\cite{k62017},
-sustaining 50 requests per second across customer registration, transaction
-submission, and case management endpoints to produce a stable baseline signal
-envelope.
+(\texttt{docker-desktop} context, Windows~11 Pro, 16~GB RAM, 8~vCPUs,
+Kubernetes~v1.29). The eleven application services are distributed across the
+\texttt{aml} and \texttt{aiops} namespaces; data infrastructure occupies a
+dedicated \texttt{data} namespace; and the observability stack is deployed in the
+\texttt{monitoring} namespace.
 
-All AML services are instrumented with Micrometer~\cite{micrometer2018} and the
-OpenTelemetry Java agent, exporting spans via OTLP to Tempo and publishing
-structured logs via Logback~\cite{logback2006} to Loki. Prometheus scrapes all
-service endpoints at 15-second intervals. The LLM Engine runs
-Qwen2.5-3B~\cite{qwen2024} via Ollama~\cite{ollama2023} on CPU within the
-cluster, with LoRA adapter weights~\cite{hu2022lora} loaded from a Kubernetes
-PersistentVolume.
+The observability stack is bootstrapped by a PowerShell provisioning script
+(\texttt{bootstrap.ps1}) that starts a local container registry on
+\texttt{localhost:5001} and installs three Helm~\cite{helm2016} charts:
+\textit{kube-prometheus-stack} for Prometheus metric scraping (15-second intervals)
+and Grafana dashboards, \textit{loki-stack} for structured log aggregation, and
+\textit{tempo} for distributed trace ingestion via
+OTLP~\cite{prometheus2015,loki2019,tempo2022}.
+
+Kafka is deployed as a single-broker KRaft-mode StatefulSet
+(\texttt{apache/kafka:3.9.0}) with no ZooKeeper dependency and no external operator.
+Eleven topic families (Table~\ref{tab:topics}) are provisioned by executing
+\texttt{kafka-topics.sh} inside the broker pod via \texttt{kubectl exec}, each with
+three partitions and replication-factor~1, appropriate for the single-node
+development cluster. Each AML service connects to a dedicated PostgreSQL~15
+StatefulSet (\texttt{postgres:15-alpine}) in the \texttt{data} namespace,
+maintaining the database-per-service isolation required by the bounded-context model.
+
+All AML service images are built from source via \texttt{make image-aml} and pushed
+to the local registry via \texttt{make push-aml}; AIOps service images are built and
+pushed analogously. AML deployments are configured with three replicas, 250\,m CPU
+request, and 1\,Gi memory limit per pod. All AML services are instrumented with the
+OpenTelemetry Java agent and Micrometer~\cite{micrometer2018}, exporting OTLP spans
+to Tempo and structured logs via Logback~\cite{logback2006} to Loki. Services are
+accessed during experiments via \texttt{kubectl port-forward}: AML endpoints on
+ports 8080--8082, AIOps endpoints on ports 9001--9007 and 8000--8001, and
+observability endpoints on Grafana:3000, Prometheus:9090, Loki:3100, and
+Tempo:3200. The \texttt{TRACE\_SAMPLE\_RATE} environment variable switches between
+0, 0.1, 0.5, and 1.0 without service restart to support the RQ3 overhead experiments.
+A synthetic AML workload exercising customer registration, transaction submission,
+and case management endpoints is generated using k6~\cite{k62017}, sustaining
+50~virtual users across the three service APIs to produce a stable baseline
+telemetry envelope. The LLM Engine runs Qwen2.5-3B~\cite{qwen2024} via
+Ollama~\cite{ollama2023} on CPU within the cluster, with LoRA adapter
+weights~\cite{hu2022lora} loaded from a Kubernetes PersistentVolume.
 
 \subsection{Fault Injection Protocol}
 

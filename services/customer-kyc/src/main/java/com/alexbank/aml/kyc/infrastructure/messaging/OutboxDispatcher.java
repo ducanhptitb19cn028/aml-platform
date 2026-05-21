@@ -1,4 +1,4 @@
-package com.yourbank.aml.kyc.infrastructure.messaging;
+package com.alexbank.aml.kyc.infrastructure.messaging;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;

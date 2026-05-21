@@ -1,7 +1,7 @@
-package com.yourbank.aml.kyc.domain.event;
+package com.alexbank.aml.kyc.domain.event;
 
-import com.yourbank.aml.kyc.domain.model.CustomerId;
-import com.yourbank.aml.kyc.domain.model.RiskTier;
+import com.alexbank.aml.kyc.domain.model.CustomerId;
+import com.alexbank.aml.kyc.domain.model.RiskTier;
 
 import java.time.Instant;
 import java.util.UUID;

@@ -1,8 +1,8 @@
-package com.yourbank.aml.monitoring.domain.model;
+package com.alexbank.aml.monitoring.domain.model;
 
-import com.yourbank.aml.monitoring.domain.event.AlertRaised;
-import com.yourbank.aml.monitoring.domain.event.DomainEvent;
-import com.yourbank.aml.monitoring.domain.rule.RuleVerdict;
+import com.alexbank.aml.monitoring.domain.event.AlertRaised;
+import com.alexbank.aml.monitoring.domain.event.DomainEvent;
+import com.alexbank.aml.monitoring.domain.rule.RuleVerdict;
 
 import java.time.Instant;
 import java.util.ArrayList;

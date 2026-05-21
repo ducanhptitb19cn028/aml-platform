@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.infrastructure.messaging;
+package com.alexbank.aml.casemanagement.infrastructure.messaging;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

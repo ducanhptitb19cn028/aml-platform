@@ -65,7 +65,7 @@ logging:
   pattern:
     correlation: "[%X{traceId:-},%X{spanId:-}] "
   level:
-    com.yourbank.aml: INFO
+    com.alexbank.aml: INFO
     org.springframework.kafka: WARN
 
 aml:

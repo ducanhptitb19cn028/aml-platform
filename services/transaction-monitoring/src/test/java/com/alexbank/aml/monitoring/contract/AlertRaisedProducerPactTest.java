@@ -1,4 +1,4 @@
-package com.yourbank.aml.monitoring.contract;
+package com.alexbank.aml.monitoring.contract;
 
 import au.com.dius.pact.provider.PactVerifyProvider;
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
@@ -6,13 +6,11 @@ import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvide
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-import au.com.dius.pact.provider.junitsupport.target.TestTarget;
-import au.com.dius.pact.provider.MessageAndMetadata;
 import au.com.dius.pact.provider.junit5.MessageTestTarget;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourbank.aml.monitoring.domain.event.AlertRaised;
-import com.yourbank.aml.monitoring.domain.model.AlertId;
-import com.yourbank.aml.monitoring.domain.model.TransactionId;
+import com.alexbank.aml.monitoring.domain.event.AlertRaised;
+import com.alexbank.aml.monitoring.domain.model.AlertId;
+import com.alexbank.aml.monitoring.domain.model.TransactionId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;

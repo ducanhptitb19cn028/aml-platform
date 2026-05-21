@@ -1,10 +1,10 @@
-package com.yourbank.aml.monitoring.infrastructure.persistence;
+package com.alexbank.aml.monitoring.infrastructure.persistence;
 
-import com.yourbank.aml.monitoring.application.port.TransactionRepository;
-import com.yourbank.aml.monitoring.domain.model.CountryCode;
-import com.yourbank.aml.monitoring.domain.model.Money;
-import com.yourbank.aml.monitoring.domain.model.Transaction;
-import com.yourbank.aml.monitoring.domain.model.TransactionId;
+import com.alexbank.aml.monitoring.application.port.TransactionRepository;
+import com.alexbank.aml.monitoring.domain.model.CountryCode;
+import com.alexbank.aml.monitoring.domain.model.Money;
+import com.alexbank.aml.monitoring.domain.model.Transaction;
+import com.alexbank.aml.monitoring.domain.model.TransactionId;
 import org.springframework.stereotype.Component;
 
 import java.time.Clock;

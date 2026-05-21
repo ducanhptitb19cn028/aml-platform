@@ -1,9 +1,9 @@
-package com.yourbank.aiops.alerting.infrastructure.kafka;
+package com.alexbank.aiops.alerting.infrastructure.kafka;
 
-import com.yourbank.aiops.alerting.application.AlertRoutingService;
-import com.yourbank.aiops.alerting.domain.Incident;
-import com.yourbank.aiops.alerting.infrastructure.store.IncidentStore;
-import com.yourbank.aiops.alerting.infrastructure.sse.SseEmitterRegistry;
+import com.alexbank.aiops.alerting.application.AlertRoutingService;
+import com.alexbank.aiops.alerting.domain.Incident;
+import com.alexbank.aiops.alerting.infrastructure.store.IncidentStore;
+import com.alexbank.aiops.alerting.infrastructure.sse.SseEmitterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -19,7 +19,7 @@ public class IncidentConsumer {
     private final SseEmitterRegistry  sseRegistry;
 
     @KafkaListener(topics = "aiops.incidents", groupId = "aiops-alerting-service",
-            properties = "spring.json.value.default.type=com.yourbank.aiops.alerting.domain.Incident")
+            properties = "spring.json.value.default.type=com.alexbank.aiops.alerting.domain.Incident")
     public void consume(Incident incident) {
         if (incident == null) {
             log.warn("Received null incident — skipping");

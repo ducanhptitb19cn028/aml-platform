@@ -1,4 +1,4 @@
-package com.yourbank.aiops.feedback.infrastructure.prometheus;
+package com.alexbank.aiops.feedback.infrastructure.prometheus;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

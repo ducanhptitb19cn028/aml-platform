@@ -1,6 +1,6 @@
-package com.yourbank.aml.casemanagement.domain.exception;
+package com.alexbank.aml.casemanagement.domain.exception;
 
-import com.yourbank.aml.casemanagement.domain.model.CaseStatus;
+import com.alexbank.aml.casemanagement.domain.model.CaseStatus;
 
 public class IllegalCaseTransitionException extends RuntimeException {
     public IllegalCaseTransitionException(CaseStatus from, CaseStatus to) {

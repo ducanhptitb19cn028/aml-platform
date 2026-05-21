@@ -1,4 +1,4 @@
-package com.yourbank.aml.kyc.domain.model;
+package com.alexbank.aml.kyc.domain.model;
 
 import java.util.EnumSet;
 import java.util.Set;

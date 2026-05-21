@@ -1,6 +1,6 @@
-package com.yourbank.aml.casemanagement.infrastructure.persistence;
+package com.alexbank.aml.casemanagement.infrastructure.persistence;
 
-import com.yourbank.aml.casemanagement.application.port.ProcessedEventStore;
+import com.alexbank.aml.casemanagement.application.port.ProcessedEventStore;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 

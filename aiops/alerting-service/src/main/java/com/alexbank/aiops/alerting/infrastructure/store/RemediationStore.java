@@ -1,6 +1,6 @@
-package com.yourbank.aiops.alerting.infrastructure.store;
+package com.alexbank.aiops.alerting.infrastructure.store;
 
-import com.yourbank.aiops.alerting.domain.RemediationRecord;
+import com.alexbank.aiops.alerting.domain.RemediationRecord;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayDeque;

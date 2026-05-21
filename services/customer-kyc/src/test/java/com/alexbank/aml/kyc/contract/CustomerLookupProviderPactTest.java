@@ -1,4 +1,4 @@
-package com.yourbank.aml.kyc.contract;
+package com.alexbank.aml.kyc.contract;
 
 import au.com.dius.pact.provider.junit5.HttpTestTarget;
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
@@ -6,13 +6,12 @@ import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvide
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-import com.yourbank.aml.kyc.application.CustomerView;
-import com.yourbank.aml.kyc.domain.model.RiskTier;
-import com.yourbank.aml.kyc.domain.model.VerificationStatus;
+import com.alexbank.aml.kyc.application.CustomerView;
+import com.alexbank.aml.kyc.domain.model.RiskTier;
+import com.alexbank.aml.kyc.domain.model.VerificationStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -25,8 +24,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.Instant;
 import java.util.Optional;
 
-import com.yourbank.aml.kyc.application.CustomerApplicationService;
-import com.yourbank.aml.kyc.domain.model.CustomerId;
+import com.alexbank.aml.kyc.application.CustomerApplicationService;
+import com.alexbank.aml.kyc.domain.model.CustomerId;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;

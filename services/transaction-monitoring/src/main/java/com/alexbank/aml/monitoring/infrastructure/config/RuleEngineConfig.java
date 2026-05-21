@@ -1,12 +1,12 @@
-package com.yourbank.aml.monitoring.infrastructure.config;
+package com.alexbank.aml.monitoring.infrastructure.config;
 
-import com.yourbank.aml.monitoring.domain.model.Money;
-import com.yourbank.aml.monitoring.domain.rule.HighRiskCorridorRule;
-import com.yourbank.aml.monitoring.domain.rule.HighValueRule;
-import com.yourbank.aml.monitoring.domain.rule.Rule;
-import com.yourbank.aml.monitoring.domain.rule.RuleEngine;
-import com.yourbank.aml.monitoring.domain.rule.StructuringRule;
-import com.yourbank.aml.monitoring.domain.rule.VelocityRule;
+import com.alexbank.aml.monitoring.domain.model.Money;
+import com.alexbank.aml.monitoring.domain.rule.HighRiskCorridorRule;
+import com.alexbank.aml.monitoring.domain.rule.HighValueRule;
+import com.alexbank.aml.monitoring.domain.rule.Rule;
+import com.alexbank.aml.monitoring.domain.rule.RuleEngine;
+import com.alexbank.aml.monitoring.domain.rule.StructuringRule;
+import com.alexbank.aml.monitoring.domain.rule.VelocityRule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

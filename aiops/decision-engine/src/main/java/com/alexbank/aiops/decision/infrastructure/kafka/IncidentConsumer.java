@@ -1,8 +1,8 @@
-package com.yourbank.aiops.decision.infrastructure.kafka;
+package com.alexbank.aiops.decision.infrastructure.kafka;
 
-import com.yourbank.aiops.decision.application.DecisionService;
-import com.yourbank.aiops.decision.domain.Incident;
-import com.yourbank.aiops.decision.domain.RemediationDecision;
+import com.alexbank.aiops.decision.application.DecisionService;
+import com.alexbank.aiops.decision.domain.Incident;
+import com.alexbank.aiops.decision.domain.RemediationDecision;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

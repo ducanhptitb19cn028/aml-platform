@@ -1,9 +1,9 @@
-package com.yourbank.aml.monitoring.infrastructure.persistence;
+package com.alexbank.aml.monitoring.infrastructure.persistence;
 
-import com.yourbank.aml.monitoring.application.port.AlertRepository;
-import com.yourbank.aml.monitoring.domain.model.Alert;
-import com.yourbank.aml.monitoring.domain.model.AlertId;
-import com.yourbank.aml.monitoring.domain.model.TransactionId;
+import com.alexbank.aml.monitoring.application.port.AlertRepository;
+import com.alexbank.aml.monitoring.domain.model.Alert;
+import com.alexbank.aml.monitoring.domain.model.AlertId;
+import com.alexbank.aml.monitoring.domain.model.TransactionId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 

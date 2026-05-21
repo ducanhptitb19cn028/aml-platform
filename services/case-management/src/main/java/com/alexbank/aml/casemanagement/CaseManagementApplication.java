@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement;
+package com.alexbank.aml.casemanagement;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

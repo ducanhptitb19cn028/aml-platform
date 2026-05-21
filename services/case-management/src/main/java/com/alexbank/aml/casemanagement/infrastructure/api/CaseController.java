@@ -1,11 +1,11 @@
-package com.yourbank.aml.casemanagement.infrastructure.api;
+package com.alexbank.aml.casemanagement.infrastructure.api;
 
-import com.yourbank.aml.casemanagement.application.CaseApplicationService;
-import com.yourbank.aml.casemanagement.application.command.AssignCaseCommand;
-import com.yourbank.aml.casemanagement.application.command.CloseCaseCommand;
-import com.yourbank.aml.casemanagement.application.command.EscalateCaseCommand;
-import com.yourbank.aml.casemanagement.application.command.OpenCaseCommand;
-import com.yourbank.aml.casemanagement.domain.model.CaseId;
+import com.alexbank.aml.casemanagement.application.CaseApplicationService;
+import com.alexbank.aml.casemanagement.application.command.AssignCaseCommand;
+import com.alexbank.aml.casemanagement.application.command.CloseCaseCommand;
+import com.alexbank.aml.casemanagement.application.command.EscalateCaseCommand;
+import com.alexbank.aml.casemanagement.application.command.OpenCaseCommand;
+import com.alexbank.aml.casemanagement.domain.model.CaseId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

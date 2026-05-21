@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.contract;
+package com.alexbank.aml.casemanagement.contract;
 
 import au.com.dius.pact.consumer.MessagePactBuilder;
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;

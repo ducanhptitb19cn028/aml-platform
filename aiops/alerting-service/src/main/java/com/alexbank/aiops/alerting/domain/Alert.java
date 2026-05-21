@@ -1,4 +1,4 @@
-package com.yourbank.aiops.alerting.domain;
+package com.alexbank.aiops.alerting.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

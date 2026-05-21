@@ -1,11 +1,11 @@
-package com.yourbank.aml.monitoring.infrastructure.api;
+package com.alexbank.aml.monitoring.infrastructure.api;
 
-import com.yourbank.aml.monitoring.application.EvaluateTransactionResult;
-import com.yourbank.aml.monitoring.application.EvaluateTransactionUseCase;
-import com.yourbank.aml.monitoring.application.command.EvaluateTransactionCommand;
-import com.yourbank.aml.monitoring.domain.model.Channel;
-import com.yourbank.aml.monitoring.domain.model.CountryCode;
-import com.yourbank.aml.monitoring.domain.model.Money;
+import com.alexbank.aml.monitoring.application.EvaluateTransactionResult;
+import com.alexbank.aml.monitoring.application.EvaluateTransactionUseCase;
+import com.alexbank.aml.monitoring.application.command.EvaluateTransactionCommand;
+import com.alexbank.aml.monitoring.domain.model.Channel;
+import com.alexbank.aml.monitoring.domain.model.CountryCode;
+import com.alexbank.aml.monitoring.domain.model.Money;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

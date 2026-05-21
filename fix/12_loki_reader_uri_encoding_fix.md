@@ -52,4 +52,4 @@ kubectl rollout restart deployment/telemetry-collector -n aiops
 ```
 
 ## Files Changed
-- `aiops/telemetry-collector/src/main/java/com/yourbank/aiops/collector/infrastructure/loki/LokiReader.java`
+- `aiops/telemetry-collector/src/main/java/com/alexbank/aiops/collector/infrastructure/loki/LokiReader.java`

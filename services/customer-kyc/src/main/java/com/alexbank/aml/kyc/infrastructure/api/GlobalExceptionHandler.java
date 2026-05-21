@@ -1,7 +1,7 @@
-package com.yourbank.aml.kyc.infrastructure.api;
+package com.alexbank.aml.kyc.infrastructure.api;
 
-import com.yourbank.aml.kyc.application.CustomerNotFoundException;
-import com.yourbank.aml.kyc.domain.exception.IllegalVerificationTransitionException;
+import com.alexbank.aml.kyc.application.CustomerNotFoundException;
+import com.alexbank.aml.kyc.domain.exception.IllegalVerificationTransitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

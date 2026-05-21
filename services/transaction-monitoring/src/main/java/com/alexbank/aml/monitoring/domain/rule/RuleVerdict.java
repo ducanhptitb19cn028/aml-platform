@@ -1,4 +1,4 @@
-package com.yourbank.aml.monitoring.domain.rule;
+package com.alexbank.aml.monitoring.domain.rule;
 
 import java.util.Objects;
 

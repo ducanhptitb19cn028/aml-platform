@@ -1,7 +1,7 @@
-package com.yourbank.aml.monitoring.domain;
+package com.alexbank.aml.monitoring.domain;
 
-import com.yourbank.aml.monitoring.domain.rule.RuleEngine;
-import com.yourbank.aml.monitoring.domain.rule.RuleVerdict;
+import com.alexbank.aml.monitoring.domain.rule.RuleEngine;
+import com.alexbank.aml.monitoring.domain.rule.RuleVerdict;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.ForAll;

@@ -1,8 +1,8 @@
-package com.yourbank.aml.kyc.application;
+package com.alexbank.aml.kyc.application;
 
-import com.yourbank.aml.kyc.domain.model.Customer;
-import com.yourbank.aml.kyc.domain.model.RiskTier;
-import com.yourbank.aml.kyc.domain.model.VerificationStatus;
+import com.alexbank.aml.kyc.domain.model.Customer;
+import com.alexbank.aml.kyc.domain.model.RiskTier;
+import com.alexbank.aml.kyc.domain.model.VerificationStatus;
 
 import java.time.Instant;
 

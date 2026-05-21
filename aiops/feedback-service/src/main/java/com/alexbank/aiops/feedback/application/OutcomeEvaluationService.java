@@ -1,11 +1,11 @@
-package com.yourbank.aiops.feedback.application;
+package com.alexbank.aiops.feedback.application;
 
-import com.yourbank.aiops.feedback.domain.IncidentOutcome;
-import com.yourbank.aiops.feedback.domain.OutcomeLabel;
-import com.yourbank.aiops.feedback.domain.RemediationRecord;
-import com.yourbank.aiops.feedback.infrastructure.kafka.OutcomePublisher;
-import com.yourbank.aiops.feedback.infrastructure.mlflow.MlflowClient;
-import com.yourbank.aiops.feedback.infrastructure.prometheus.SloQueryAdapter;
+import com.alexbank.aiops.feedback.domain.IncidentOutcome;
+import com.alexbank.aiops.feedback.domain.OutcomeLabel;
+import com.alexbank.aiops.feedback.domain.RemediationRecord;
+import com.alexbank.aiops.feedback.infrastructure.kafka.OutcomePublisher;
+import com.alexbank.aiops.feedback.infrastructure.mlflow.MlflowClient;
+import com.alexbank.aiops.feedback.infrastructure.prometheus.SloQueryAdapter;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

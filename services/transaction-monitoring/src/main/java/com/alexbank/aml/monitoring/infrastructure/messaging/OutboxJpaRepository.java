@@ -1,4 +1,4 @@
-package com.yourbank.aml.monitoring.infrastructure.messaging;
+package com.alexbank.aml.monitoring.infrastructure.messaging;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

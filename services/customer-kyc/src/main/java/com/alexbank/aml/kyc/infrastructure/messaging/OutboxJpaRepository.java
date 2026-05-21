@@ -1,4 +1,4 @@
-package com.yourbank.aml.kyc.infrastructure.messaging;
+package com.alexbank.aml.kyc.infrastructure.messaging;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

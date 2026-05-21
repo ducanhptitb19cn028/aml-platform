@@ -1,6 +1,6 @@
-package com.yourbank.aml.casemanagement.domain.event;
+package com.alexbank.aml.casemanagement.domain.event;
 
-import com.yourbank.aml.casemanagement.domain.model.CaseId;
+import com.alexbank.aml.casemanagement.domain.model.CaseId;
 import java.time.Instant;
 import java.util.UUID;
 

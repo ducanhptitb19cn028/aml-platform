@@ -1,6 +1,4 @@
-package com.yourbank.aml.monitoring.domain.rule;
-
-import com.yourbank.aml.monitoring.domain.model.Transaction;
+package com.alexbank.aml.monitoring.domain.rule;
 
 /**
  * AML-404 / High-Risk Corridor.

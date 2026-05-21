@@ -1,8 +1,8 @@
-package com.yourbank.aiops.remediation.application;
+package com.alexbank.aiops.remediation.application;
 
-import com.yourbank.aiops.remediation.domain.RemediationRecord;
-import com.yourbank.aiops.remediation.domain.RemediationStatus;
-import com.yourbank.aiops.remediation.infrastructure.kubernetes.KubernetesActuator;
+import com.alexbank.aiops.remediation.domain.RemediationRecord;
+import com.alexbank.aiops.remediation.domain.RemediationStatus;
+import com.alexbank.aiops.remediation.infrastructure.kubernetes.KubernetesActuator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,6 +1,6 @@
-package com.yourbank.aiops.feedback.infrastructure.kafka;
+package com.alexbank.aiops.feedback.infrastructure.kafka;
 
-import com.yourbank.aiops.feedback.domain.IncidentOutcome;
+import com.alexbank.aiops.feedback.domain.IncidentOutcome;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;

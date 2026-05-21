@@ -1,15 +1,14 @@
-package com.yourbank.aml.monitoring.infrastructure;
+package com.alexbank.aml.monitoring.infrastructure;
 
-import com.yourbank.aml.monitoring.application.port.AlertRepository;
-import com.yourbank.aml.monitoring.application.port.TransactionRepository;
-import com.yourbank.aml.monitoring.domain.model.Alert;
-import com.yourbank.aml.monitoring.domain.model.AlertId;
-import com.yourbank.aml.monitoring.domain.model.Channel;
-import com.yourbank.aml.monitoring.domain.model.CountryCode;
-import com.yourbank.aml.monitoring.domain.model.Money;
-import com.yourbank.aml.monitoring.domain.model.Transaction;
-import com.yourbank.aml.monitoring.domain.model.TransactionId;
-import com.yourbank.aml.monitoring.domain.rule.RuleVerdict;
+import com.alexbank.aml.monitoring.application.port.AlertRepository;
+import com.alexbank.aml.monitoring.application.port.TransactionRepository;
+import com.alexbank.aml.monitoring.domain.model.Alert;
+import com.alexbank.aml.monitoring.domain.model.Channel;
+import com.alexbank.aml.monitoring.domain.model.CountryCode;
+import com.alexbank.aml.monitoring.domain.model.Money;
+import com.alexbank.aml.monitoring.domain.model.Transaction;
+import com.alexbank.aml.monitoring.domain.model.TransactionId;
+import com.alexbank.aml.monitoring.domain.rule.RuleVerdict;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;

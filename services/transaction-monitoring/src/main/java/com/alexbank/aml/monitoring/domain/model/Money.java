@@ -1,4 +1,4 @@
-package com.yourbank.aml.monitoring.domain.model;
+package com.alexbank.aml.monitoring.domain.model;
 
 import java.math.BigDecimal;
 import java.util.Currency;

@@ -1,4 +1,4 @@
-package com.yourbank.aiops.remediation.infrastructure.kubernetes;
+package com.alexbank.aiops.remediation.infrastructure.kubernetes;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler;

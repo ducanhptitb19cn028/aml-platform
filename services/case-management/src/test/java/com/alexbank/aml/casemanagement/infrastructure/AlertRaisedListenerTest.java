@@ -1,9 +1,9 @@
-package com.yourbank.aml.casemanagement.infrastructure;
+package com.alexbank.aml.casemanagement.infrastructure;
 
-import com.yourbank.aml.casemanagement.application.CaseApplicationService;
-import com.yourbank.aml.casemanagement.application.command.OpenCaseCommand;
-import com.yourbank.aml.casemanagement.application.port.ProcessedEventStore;
-import com.yourbank.aml.casemanagement.infrastructure.messaging.AlertRaisedListener;
+import com.alexbank.aml.casemanagement.application.CaseApplicationService;
+import com.alexbank.aml.casemanagement.application.command.OpenCaseCommand;
+import com.alexbank.aml.casemanagement.application.port.ProcessedEventStore;
+import com.alexbank.aml.casemanagement.infrastructure.messaging.AlertRaisedListener;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -40,7 +39,7 @@ class AlertRaisedListenerTest {
         processedStore = new InMemoryProcessedEventStore();
         // Instantiate the package-private listener via reflection
         Class<?> cls = Class.forName(
-                "com.yourbank.aml.casemanagement.infrastructure.messaging.AlertRaisedListener");
+                "com.alexbank.aml.casemanagement.infrastructure.messaging.AlertRaisedListener");
         var ctor = cls.getDeclaredConstructor(
                 CaseApplicationService.class,
                 ProcessedEventStore.class,

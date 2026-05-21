@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.infrastructure.config;
+package com.alexbank.aml.casemanagement.infrastructure.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;

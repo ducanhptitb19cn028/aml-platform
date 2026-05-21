@@ -1127,7 +1127,7 @@ $json = '{"incidentId":"test-001","detectedAt":"' + $ts +
         '","anomalyScore":0.93,"affectedServices":["transaction-monitoring"],' +
         '"rootCauseRanking":[{"component":"db-pool","weight":0.8}],' +
         '"breachEtaMinutes":12,"confidence":0.91}'
-$msg = "__TypeId__:com.yourbank.aiops.alerting.domain.Incident${tab}${json}"
+$msg = "__TypeId__:com.alexbank.aiops.alerting.domain.Incident${tab}${json}"
 [System.IO.File]::WriteAllText("$PWD\kafka_msg.txt", "$msg`n", $utf8NoBom)
 
 # 2. Copy to the Kafka pod.
@@ -1156,7 +1156,7 @@ $tab = "`t"
           ',"affectedServices":["payment-service"],' +
           '"rootCauseRanking":[{"component":"db-pool","weight":0.8}],' +
           '"breachEtaMinutes":' + $eta + ',"confidence":0.88}'
-  $msg = "__TypeId__:com.yourbank.aiops.alerting.domain.Incident${tab}${json}"
+  $msg = "__TypeId__:com.alexbank.aiops.alerting.domain.Incident${tab}${json}"
   [System.IO.File]::WriteAllText("$PWD\kafka_msg.txt", "$msg`n", $utf8NoBom)
   kubectl cp .\kafka_msg.txt kafka-0:/tmp/kafka_msg.txt -n data
   kubectl exec -n data kafka-0 -- bash -c "/opt/kafka/bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic aiops.incidents --property parse.headers=true < /tmp/kafka_msg.txt"

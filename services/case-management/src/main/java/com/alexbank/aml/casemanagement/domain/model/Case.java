@@ -1,11 +1,11 @@
-package com.yourbank.aml.casemanagement.domain.model;
+package com.alexbank.aml.casemanagement.domain.model;
 
-import com.yourbank.aml.casemanagement.domain.event.CaseAssigned;
-import com.yourbank.aml.casemanagement.domain.event.CaseClosed;
-import com.yourbank.aml.casemanagement.domain.event.CaseEscalated;
-import com.yourbank.aml.casemanagement.domain.event.CaseOpened;
-import com.yourbank.aml.casemanagement.domain.event.DomainEvent;
-import com.yourbank.aml.casemanagement.domain.exception.IllegalCaseTransitionException;
+import com.alexbank.aml.casemanagement.domain.event.CaseAssigned;
+import com.alexbank.aml.casemanagement.domain.event.CaseClosed;
+import com.alexbank.aml.casemanagement.domain.event.CaseEscalated;
+import com.alexbank.aml.casemanagement.domain.event.CaseOpened;
+import com.alexbank.aml.casemanagement.domain.event.DomainEvent;
+import com.alexbank.aml.casemanagement.domain.exception.IllegalCaseTransitionException;
 
 import java.time.Instant;
 import java.util.ArrayList;

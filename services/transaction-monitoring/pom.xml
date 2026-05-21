@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.yourbank.aml</groupId>
+        <groupId>com.alexbank.aml</groupId>
         <artifactId>aml-platform</artifactId>
         <version>0.3.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
@@ -131,7 +131,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.yourbank.aml.monitoring.TransactionMonitoringApplication</mainClass>
+                    <mainClass>com.alexbank.aml.monitoring.TransactionMonitoringApplication</mainClass>
                 </configuration>
             </plugin>
             <plugin>
@@ -139,10 +139,10 @@
                 <artifactId>pitest-maven</artifactId>
                 <configuration>
                     <targetClasses>
-                        <param>com.yourbank.aml.monitoring.domain.*</param>
+                        <param>com.alexbank.aml.monitoring.domain.*</param>
                     </targetClasses>
                     <targetTests>
-                        <param>com.yourbank.aml.monitoring.domain.*</param>
+                        <param>com.alexbank.aml.monitoring.domain.*</param>
                     </targetTests>
                     <mutationThreshold>85</mutationThreshold>
                 </configuration>

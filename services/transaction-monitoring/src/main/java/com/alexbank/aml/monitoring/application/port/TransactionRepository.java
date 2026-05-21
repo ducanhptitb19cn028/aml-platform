@@ -1,7 +1,7 @@
-package com.yourbank.aml.monitoring.application.port;
+package com.alexbank.aml.monitoring.application.port;
 
-import com.yourbank.aml.monitoring.domain.model.Transaction;
-import com.yourbank.aml.monitoring.domain.model.TransactionId;
+import com.alexbank.aml.monitoring.domain.model.Transaction;
+import com.alexbank.aml.monitoring.domain.model.TransactionId;
 
 import java.time.Duration;
 import java.util.List;

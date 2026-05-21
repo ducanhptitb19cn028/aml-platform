@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.domain.model;
+package com.alexbank.aml.casemanagement.domain.model;
 
 /**
  * Risk score, validated at construction time.

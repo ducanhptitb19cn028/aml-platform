@@ -1,7 +1,7 @@
-package com.yourbank.aml.kyc.infrastructure.persistence;
+package com.alexbank.aml.kyc.infrastructure.persistence;
 
-import com.yourbank.aml.kyc.domain.model.RiskTier;
-import com.yourbank.aml.kyc.domain.model.VerificationStatus;
+import com.alexbank.aml.kyc.domain.model.RiskTier;
+import com.alexbank.aml.kyc.domain.model.VerificationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

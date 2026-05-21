@@ -1,4 +1,4 @@
-package com.yourbank.aml.monitoring.domain.model;
+package com.alexbank.aml.monitoring.domain.model;
 
 /**
  * The payment channel through which the transaction was initiated.

@@ -1,13 +1,13 @@
-package com.yourbank.aml.casemanagement.domain;
+package com.alexbank.aml.casemanagement.domain;
 
-import com.yourbank.aml.casemanagement.domain.event.CaseAssigned;
-import com.yourbank.aml.casemanagement.domain.event.CaseClosed;
-import com.yourbank.aml.casemanagement.domain.event.CaseEscalated;
-import com.yourbank.aml.casemanagement.domain.event.CaseOpened;
-import com.yourbank.aml.casemanagement.domain.exception.IllegalCaseTransitionException;
-import com.yourbank.aml.casemanagement.domain.model.Case;
-import com.yourbank.aml.casemanagement.domain.model.CaseStatus;
-import com.yourbank.aml.casemanagement.domain.model.RiskScore;
+import com.alexbank.aml.casemanagement.domain.event.CaseAssigned;
+import com.alexbank.aml.casemanagement.domain.event.CaseClosed;
+import com.alexbank.aml.casemanagement.domain.event.CaseEscalated;
+import com.alexbank.aml.casemanagement.domain.event.CaseOpened;
+import com.alexbank.aml.casemanagement.domain.exception.IllegalCaseTransitionException;
+import com.alexbank.aml.casemanagement.domain.model.Case;
+import com.alexbank.aml.casemanagement.domain.model.CaseStatus;
+import com.alexbank.aml.casemanagement.domain.model.RiskScore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

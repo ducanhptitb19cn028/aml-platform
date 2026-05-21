@@ -1,6 +1,6 @@
-package com.yourbank.aiops.alerting.infrastructure.webhook;
+package com.alexbank.aiops.alerting.infrastructure.webhook;
 
-import com.yourbank.aiops.alerting.domain.Alert;
+import com.alexbank.aiops.alerting.domain.Alert;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.infrastructure.persistence;
+package com.alexbank.aml.casemanagement.infrastructure.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,7 +11,7 @@ import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.yourbank.aml.casemanagement.domain.model.CaseStatus;
+import com.alexbank.aml.casemanagement.domain.model.CaseStatus;
 
 /**
  * JPA persistence model. SEPARATE from the domain Case class.

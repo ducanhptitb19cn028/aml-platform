@@ -1,11 +1,11 @@
-package com.yourbank.aml.casemanagement.application;
+package com.alexbank.aml.casemanagement.application;
 
-import com.yourbank.aml.casemanagement.application.command.OpenCaseCommand;
-import com.yourbank.aml.casemanagement.application.port.CaseRepository;
-import com.yourbank.aml.casemanagement.application.port.DomainEventPublisher;
-import com.yourbank.aml.casemanagement.domain.event.DomainEvent;
-import com.yourbank.aml.casemanagement.domain.model.Case;
-import com.yourbank.aml.casemanagement.domain.model.CaseId;
+import com.alexbank.aml.casemanagement.application.command.OpenCaseCommand;
+import com.alexbank.aml.casemanagement.application.port.CaseRepository;
+import com.alexbank.aml.casemanagement.application.port.DomainEventPublisher;
+import com.alexbank.aml.casemanagement.domain.event.DomainEvent;
+import com.alexbank.aml.casemanagement.domain.model.Case;
+import com.alexbank.aml.casemanagement.domain.model.CaseId;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.BeforeEach;

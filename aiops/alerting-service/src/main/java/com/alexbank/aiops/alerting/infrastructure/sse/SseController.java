@@ -1,4 +1,4 @@
-package com.yourbank.aiops.alerting.infrastructure.sse;
+package com.alexbank.aiops.alerting.infrastructure.sse;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

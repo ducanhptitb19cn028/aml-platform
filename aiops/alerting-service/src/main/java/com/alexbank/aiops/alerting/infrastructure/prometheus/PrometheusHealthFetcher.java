@@ -1,4 +1,4 @@
-package com.yourbank.aiops.alerting.infrastructure.prometheus;
+package com.alexbank.aiops.alerting.infrastructure.prometheus;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

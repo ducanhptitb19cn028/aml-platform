@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.domain.model;
+package com.alexbank.aml.casemanagement.domain.model;
 
 import java.util.EnumSet;
 import java.util.Set;

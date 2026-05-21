@@ -1,10 +1,9 @@
-package com.yourbank.aml.monitoring.infrastructure;
+package com.alexbank.aml.monitoring.infrastructure;
 
-import com.yourbank.aml.monitoring.application.port.DomainEventPublisher;
-import com.yourbank.aml.monitoring.domain.event.AlertRaised;
-import com.yourbank.aml.monitoring.domain.event.DomainEvent;
-import com.yourbank.aml.monitoring.domain.model.AlertId;
-import com.yourbank.aml.monitoring.domain.model.TransactionId;
+import com.alexbank.aml.monitoring.application.port.DomainEventPublisher;
+import com.alexbank.aml.monitoring.domain.event.AlertRaised;
+import com.alexbank.aml.monitoring.domain.model.AlertId;
+import com.alexbank.aml.monitoring.domain.model.TransactionId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;

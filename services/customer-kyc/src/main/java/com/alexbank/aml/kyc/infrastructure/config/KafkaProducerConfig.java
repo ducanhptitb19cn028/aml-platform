@@ -1,4 +1,4 @@
-package com.yourbank.aml.kyc.infrastructure.config;
+package com.alexbank.aml.kyc.infrastructure.config;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;

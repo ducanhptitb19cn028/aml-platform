@@ -16,7 +16,7 @@ spring:
       properties:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
-        spring.json.value.default.type: com.yourbank.aiops.remediation.application.RemediationDecision
+        spring.json.value.default.type: com.alexbank.aiops.remediation.application.RemediationDecision
 
 server:
   port: 9004
@@ -39,6 +39,6 @@ aiops:
 
 logging:
   level:
-    com.yourbank.aiops: INFO
+    com.alexbank.aiops: INFO
     io.fabric8: WARN
     org.springframework.kafka: WARN

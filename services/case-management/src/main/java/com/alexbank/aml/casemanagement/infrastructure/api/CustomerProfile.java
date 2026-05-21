@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.infrastructure.api;
+package com.alexbank.aml.casemanagement.infrastructure.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

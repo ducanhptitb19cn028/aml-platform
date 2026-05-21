@@ -1,4 +1,4 @@
-package com.yourbank.aiops.decision.domain;
+package com.alexbank.aiops.decision.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

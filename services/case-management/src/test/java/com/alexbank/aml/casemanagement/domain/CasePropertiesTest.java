@@ -1,9 +1,9 @@
-package com.yourbank.aml.casemanagement.domain;
+package com.alexbank.aml.casemanagement.domain;
 
-import com.yourbank.aml.casemanagement.domain.exception.IllegalCaseTransitionException;
-import com.yourbank.aml.casemanagement.domain.model.Case;
-import com.yourbank.aml.casemanagement.domain.model.CaseStatus;
-import com.yourbank.aml.casemanagement.domain.model.RiskScore;
+import com.alexbank.aml.casemanagement.domain.exception.IllegalCaseTransitionException;
+import com.alexbank.aml.casemanagement.domain.model.Case;
+import com.alexbank.aml.casemanagement.domain.model.CaseStatus;
+import com.alexbank.aml.casemanagement.domain.model.RiskScore;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.ForAll;

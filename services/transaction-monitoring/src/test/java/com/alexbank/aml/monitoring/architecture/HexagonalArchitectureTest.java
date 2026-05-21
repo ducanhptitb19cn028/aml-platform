@@ -1,4 +1,4 @@
-package com.yourbank.aml.monitoring.architecture;
+package com.alexbank.aml.monitoring.architecture;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -9,7 +9,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @AnalyzeClasses(
-        packages = "com.yourbank.aml.monitoring",
+        packages = "com.alexbank.aml.monitoring",
         importOptions = ImportOption.DoNotIncludeTests.class
 )
 class HexagonalArchitectureTest {

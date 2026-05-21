@@ -15,10 +15,10 @@ Unlike other Spring Boot starters, fabric8's raw Kubernetes client requires an e
 ## Fix
 
 ### Created `KubernetesConfig.java`
-**Path:** `aiops/remediation-engine/src/main/java/com/yourbank/aiops/remediation/infrastructure/kubernetes/KubernetesConfig.java`
+**Path:** `aiops/remediation-engine/src/main/java/com/alexbank/aiops/remediation/infrastructure/kubernetes/KubernetesConfig.java`
 
 ```java
-package com.yourbank.aiops.remediation.infrastructure.kubernetes;
+package com.alexbank.aiops.remediation.infrastructure.kubernetes;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
@@ -42,4 +42,4 @@ The remediation-engine's `ServiceAccount` in `aiops.yml` is bound to `aiops-reme
 which grants `get/list/patch/update` on Deployments, HPAs, and Ingresses in the `aml` namespace.
 
 ## Files Changed
-- `aiops/remediation-engine/src/main/java/com/yourbank/aiops/remediation/infrastructure/kubernetes/KubernetesConfig.java` (new)
+- `aiops/remediation-engine/src/main/java/com/alexbank/aiops/remediation/infrastructure/kubernetes/KubernetesConfig.java` (new)

@@ -1,7 +1,7 @@
-package com.yourbank.aiops.feedback.infrastructure.mlflow;
+package com.alexbank.aiops.feedback.infrastructure.mlflow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourbank.aiops.feedback.domain.IncidentOutcome;
+import com.alexbank.aiops.feedback.domain.IncidentOutcome;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

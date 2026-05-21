@@ -1,4 +1,4 @@
-package com.yourbank.aiops.remediation;
+package com.alexbank.aiops.remediation;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

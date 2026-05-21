@@ -1,8 +1,8 @@
-package com.yourbank.aml.casemanagement.infrastructure.messaging;
+package com.alexbank.aml.casemanagement.infrastructure.messaging;
 
-import com.yourbank.aml.casemanagement.application.CaseApplicationService;
-import com.yourbank.aml.casemanagement.application.command.OpenCaseCommand;
-import com.yourbank.aml.casemanagement.application.port.ProcessedEventStore;
+import com.alexbank.aml.casemanagement.application.CaseApplicationService;
+import com.alexbank.aml.casemanagement.application.command.OpenCaseCommand;
+import com.alexbank.aml.casemanagement.application.port.ProcessedEventStore;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;

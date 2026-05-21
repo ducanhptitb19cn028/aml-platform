@@ -1,4 +1,4 @@
-package com.yourbank.aiops.feedback.domain;
+package com.alexbank.aiops.feedback.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

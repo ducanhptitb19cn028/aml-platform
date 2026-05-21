@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.infrastructure.persistence;
+package com.alexbank.aml.casemanagement.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

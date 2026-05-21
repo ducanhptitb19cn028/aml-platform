@@ -1,7 +1,7 @@
-package com.yourbank.aiops.feedback.infrastructure.kafka;
+package com.alexbank.aiops.feedback.infrastructure.kafka;
 
-import com.yourbank.aiops.feedback.application.OutcomeEvaluationService;
-import com.yourbank.aiops.feedback.domain.RemediationRecord;
+import com.alexbank.aiops.feedback.application.OutcomeEvaluationService;
+import com.alexbank.aiops.feedback.domain.RemediationRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

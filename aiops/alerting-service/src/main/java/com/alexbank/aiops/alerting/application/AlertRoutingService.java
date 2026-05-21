@@ -1,9 +1,9 @@
-package com.yourbank.aiops.alerting.application;
+package com.alexbank.aiops.alerting.application;
 
-import com.yourbank.aiops.alerting.domain.Alert;
-import com.yourbank.aiops.alerting.domain.Incident;
-import com.yourbank.aiops.alerting.domain.Severity;
-import com.yourbank.aiops.alerting.infrastructure.webhook.SlackNotifier;
+import com.alexbank.aiops.alerting.domain.Alert;
+import com.alexbank.aiops.alerting.domain.Incident;
+import com.alexbank.aiops.alerting.domain.Severity;
+import com.alexbank.aiops.alerting.infrastructure.webhook.SlackNotifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

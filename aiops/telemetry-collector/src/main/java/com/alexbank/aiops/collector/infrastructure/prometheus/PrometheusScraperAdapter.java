@@ -1,9 +1,9 @@
-package com.yourbank.aiops.collector.infrastructure.prometheus;
+package com.alexbank.aiops.collector.infrastructure.prometheus;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourbank.aiops.collector.domain.MetricSignal;
-import com.yourbank.aiops.collector.infrastructure.kafka.SignalPublisher;
+import com.alexbank.aiops.collector.domain.MetricSignal;
+import com.alexbank.aiops.collector.infrastructure.kafka.SignalPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

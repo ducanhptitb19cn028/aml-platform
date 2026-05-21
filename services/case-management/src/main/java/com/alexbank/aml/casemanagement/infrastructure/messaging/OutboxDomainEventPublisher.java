@@ -1,9 +1,9 @@
-package com.yourbank.aml.casemanagement.infrastructure.messaging;
+package com.alexbank.aml.casemanagement.infrastructure.messaging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourbank.aml.casemanagement.application.port.DomainEventPublisher;
-import com.yourbank.aml.casemanagement.domain.event.DomainEvent;
+import com.alexbank.aml.casemanagement.application.port.DomainEventPublisher;
+import com.alexbank.aml.casemanagement.domain.event.DomainEvent;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import org.springframework.stereotype.Component;

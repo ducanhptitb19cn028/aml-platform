@@ -1,4 +1,4 @@
-package com.yourbank.aiops.remediation.application;
+package com.alexbank.aiops.remediation.application;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

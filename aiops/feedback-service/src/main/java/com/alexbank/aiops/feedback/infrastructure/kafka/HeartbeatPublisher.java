@@ -1,4 +1,4 @@
-package com.yourbank.aiops.feedback.infrastructure.kafka;
+package com.alexbank.aiops.feedback.infrastructure.kafka;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.yourbank.aiops.stream;
+package com.alexbank.aiops.stream;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

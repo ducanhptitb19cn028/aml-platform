@@ -1,9 +1,9 @@
-package com.yourbank.aiops.collector.infrastructure.tempo;
+package com.alexbank.aiops.collector.infrastructure.tempo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourbank.aiops.collector.domain.TraceSignal;
-import com.yourbank.aiops.collector.infrastructure.kafka.SignalPublisher;
+import com.alexbank.aiops.collector.domain.TraceSignal;
+import com.alexbank.aiops.collector.infrastructure.kafka.SignalPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

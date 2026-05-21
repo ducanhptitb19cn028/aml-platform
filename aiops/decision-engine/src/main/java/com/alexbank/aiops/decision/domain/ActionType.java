@@ -1,4 +1,4 @@
-package com.yourbank.aiops.decision.domain;
+package com.alexbank.aiops.decision.domain;
 
 public enum ActionType {
     SCALE_OUT,

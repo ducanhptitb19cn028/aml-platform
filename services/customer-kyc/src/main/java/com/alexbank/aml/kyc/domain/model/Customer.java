@@ -1,11 +1,11 @@
-package com.yourbank.aml.kyc.domain.model;
+package com.alexbank.aml.kyc.domain.model;
 
-import com.yourbank.aml.kyc.domain.event.CustomerOnboarded;
-import com.yourbank.aml.kyc.domain.event.CustomerRejected;
-import com.yourbank.aml.kyc.domain.event.CustomerRiskUpdated;
-import com.yourbank.aml.kyc.domain.event.CustomerVerified;
-import com.yourbank.aml.kyc.domain.event.DomainEvent;
-import com.yourbank.aml.kyc.domain.exception.IllegalVerificationTransitionException;
+import com.alexbank.aml.kyc.domain.event.CustomerOnboarded;
+import com.alexbank.aml.kyc.domain.event.CustomerRejected;
+import com.alexbank.aml.kyc.domain.event.CustomerRiskUpdated;
+import com.alexbank.aml.kyc.domain.event.CustomerVerified;
+import com.alexbank.aml.kyc.domain.event.DomainEvent;
+import com.alexbank.aml.kyc.domain.exception.IllegalVerificationTransitionException;
 
 import java.time.Instant;
 import java.util.ArrayList;

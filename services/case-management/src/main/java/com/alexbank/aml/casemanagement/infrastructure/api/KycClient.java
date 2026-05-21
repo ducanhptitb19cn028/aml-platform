@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.infrastructure.api;
+package com.alexbank.aml.casemanagement.infrastructure.api;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

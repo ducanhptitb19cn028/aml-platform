@@ -1,14 +1,14 @@
-package com.yourbank.aml.casemanagement.application;
+package com.alexbank.aml.casemanagement.application;
 
-import com.yourbank.aml.casemanagement.application.command.AssignCaseCommand;
-import com.yourbank.aml.casemanagement.application.command.CloseCaseCommand;
-import com.yourbank.aml.casemanagement.application.command.EscalateCaseCommand;
-import com.yourbank.aml.casemanagement.application.command.OpenCaseCommand;
-import com.yourbank.aml.casemanagement.application.port.CaseRepository;
-import com.yourbank.aml.casemanagement.application.port.DomainEventPublisher;
-import com.yourbank.aml.casemanagement.domain.model.Case;
-import com.yourbank.aml.casemanagement.domain.model.CaseId;
-import com.yourbank.aml.casemanagement.domain.model.RiskScore;
+import com.alexbank.aml.casemanagement.application.command.AssignCaseCommand;
+import com.alexbank.aml.casemanagement.application.command.CloseCaseCommand;
+import com.alexbank.aml.casemanagement.application.command.EscalateCaseCommand;
+import com.alexbank.aml.casemanagement.application.command.OpenCaseCommand;
+import com.alexbank.aml.casemanagement.application.port.CaseRepository;
+import com.alexbank.aml.casemanagement.application.port.DomainEventPublisher;
+import com.alexbank.aml.casemanagement.domain.model.Case;
+import com.alexbank.aml.casemanagement.domain.model.CaseId;
+import com.alexbank.aml.casemanagement.domain.model.RiskScore;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;

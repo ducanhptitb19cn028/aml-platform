@@ -1,3 +1,3 @@
-package com.yourbank.aml.casemanagement.application.command;
+package com.alexbank.aml.casemanagement.application.command;
 
 public record OpenCaseCommand(String alertId, String customerId, int riskScore) {}

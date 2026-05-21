@@ -1,8 +1,8 @@
-package com.yourbank.aml.monitoring.application.command;
+package com.alexbank.aml.monitoring.application.command;
 
-import com.yourbank.aml.monitoring.domain.model.Channel;
-import com.yourbank.aml.monitoring.domain.model.CountryCode;
-import com.yourbank.aml.monitoring.domain.model.Money;
+import com.alexbank.aml.monitoring.domain.model.Channel;
+import com.alexbank.aml.monitoring.domain.model.CountryCode;
+import com.alexbank.aml.monitoring.domain.model.Money;
 
 import java.time.Instant;
 

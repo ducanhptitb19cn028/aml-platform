@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.application.port;
+package com.alexbank.aml.casemanagement.application.port;
 
 import java.util.UUID;
 

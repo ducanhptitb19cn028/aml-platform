@@ -1,10 +1,10 @@
-package com.yourbank.aml.kyc.infrastructure.persistence;
+package com.alexbank.aml.kyc.infrastructure.persistence;
 
-import com.yourbank.aml.kyc.application.port.CustomerRepository;
-import com.yourbank.aml.kyc.domain.model.CountryCode;
-import com.yourbank.aml.kyc.domain.model.Customer;
-import com.yourbank.aml.kyc.domain.model.CustomerId;
-import com.yourbank.aml.kyc.domain.model.RiskProfile;
+import com.alexbank.aml.kyc.application.port.CustomerRepository;
+import com.alexbank.aml.kyc.domain.model.CountryCode;
+import com.alexbank.aml.kyc.domain.model.Customer;
+import com.alexbank.aml.kyc.domain.model.CustomerId;
+import com.alexbank.aml.kyc.domain.model.RiskProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 

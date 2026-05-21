@@ -1,4 +1,4 @@
-package com.yourbank.aml.kyc.domain.model;
+package com.alexbank.aml.kyc.domain.model;
 
 import java.util.Objects;
 
@@ -6,7 +6,7 @@ import java.util.Objects;
  * ISO 3166-1 alpha-2 country code for residency / nationality.
  *
  * Note: this is intentionally a SEPARATE class from
- * com.yourbank.aml.monitoring.domain.model.CountryCode. Bounded
+ * com.alexbank.aml.monitoring.domain.model.CountryCode. Bounded
  * contexts do not share types — even when the underlying concept is
  * identical. If KYC ever needs to evolve its country handling
  * (separate residency from nationality, support tax-residency lists,

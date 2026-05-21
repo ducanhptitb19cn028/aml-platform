@@ -1,9 +1,9 @@
-package com.yourbank.aiops.collector.infrastructure.loki;
+package com.alexbank.aiops.collector.infrastructure.loki;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourbank.aiops.collector.domain.LogSignal;
-import com.yourbank.aiops.collector.infrastructure.kafka.SignalPublisher;
+import com.alexbank.aiops.collector.domain.LogSignal;
+import com.alexbank.aiops.collector.infrastructure.kafka.SignalPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,4 +1,4 @@
-package com.yourbank.aml.kyc.domain.event;
+package com.alexbank.aml.kyc.domain.event;
 
 import java.time.Instant;
 import java.util.UUID;

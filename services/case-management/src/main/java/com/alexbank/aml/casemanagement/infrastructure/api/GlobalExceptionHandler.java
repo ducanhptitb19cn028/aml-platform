@@ -1,7 +1,7 @@
-package com.yourbank.aml.casemanagement.infrastructure.api;
+package com.alexbank.aml.casemanagement.infrastructure.api;
 
-import com.yourbank.aml.casemanagement.application.CaseNotFoundException;
-import com.yourbank.aml.casemanagement.domain.exception.IllegalCaseTransitionException;
+import com.alexbank.aml.casemanagement.application.CaseNotFoundException;
+import com.alexbank.aml.casemanagement.domain.exception.IllegalCaseTransitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

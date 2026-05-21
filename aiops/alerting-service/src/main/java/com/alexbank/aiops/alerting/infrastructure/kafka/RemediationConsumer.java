@@ -1,8 +1,8 @@
-package com.yourbank.aiops.alerting.infrastructure.kafka;
+package com.alexbank.aiops.alerting.infrastructure.kafka;
 
-import com.yourbank.aiops.alerting.domain.RemediationRecord;
-import com.yourbank.aiops.alerting.infrastructure.store.RemediationStore;
-import com.yourbank.aiops.alerting.infrastructure.sse.SseEmitterRegistry;
+import com.alexbank.aiops.alerting.domain.RemediationRecord;
+import com.alexbank.aiops.alerting.infrastructure.store.RemediationStore;
+import com.alexbank.aiops.alerting.infrastructure.sse.SseEmitterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -17,7 +17,7 @@ public class RemediationConsumer {
     private final SseEmitterRegistry sseRegistry;
 
     @KafkaListener(topics = "aiops.actions", groupId = "aiops-alerting-service",
-            properties = "spring.json.value.default.type=com.yourbank.aiops.alerting.domain.RemediationRecord")
+            properties = "spring.json.value.default.type=com.alexbank.aiops.alerting.domain.RemediationRecord")
     public void consume(RemediationRecord record) {
         if (record == null) return;
         remediationStore.add(record);

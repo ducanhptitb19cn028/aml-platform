@@ -1,8 +1,8 @@
-package com.yourbank.aiops.collector.infrastructure.kafka;
+package com.alexbank.aiops.collector.infrastructure.kafka;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourbank.aiops.collector.domain.MetricSignal;
+import com.alexbank.aiops.collector.domain.MetricSignal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

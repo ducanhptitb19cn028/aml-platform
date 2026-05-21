@@ -1,12 +1,12 @@
-package com.yourbank.aiops.alerting.infrastructure.rest;
+package com.alexbank.aiops.alerting.infrastructure.rest;
 
-import com.yourbank.aiops.alerting.domain.Incident;
-import com.yourbank.aiops.alerting.domain.IncidentOutcome;
-import com.yourbank.aiops.alerting.domain.RemediationRecord;
-import com.yourbank.aiops.alerting.infrastructure.prometheus.PrometheusHealthFetcher;
-import com.yourbank.aiops.alerting.infrastructure.store.IncidentStore;
-import com.yourbank.aiops.alerting.infrastructure.store.OutcomeStore;
-import com.yourbank.aiops.alerting.infrastructure.store.RemediationStore;
+import com.alexbank.aiops.alerting.domain.Incident;
+import com.alexbank.aiops.alerting.domain.IncidentOutcome;
+import com.alexbank.aiops.alerting.domain.RemediationRecord;
+import com.alexbank.aiops.alerting.infrastructure.prometheus.PrometheusHealthFetcher;
+import com.alexbank.aiops.alerting.infrastructure.store.IncidentStore;
+import com.alexbank.aiops.alerting.infrastructure.store.OutcomeStore;
+import com.alexbank.aiops.alerting.infrastructure.store.RemediationStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;

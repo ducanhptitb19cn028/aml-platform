@@ -1,6 +1,6 @@
-package com.yourbank.aiops.decision.application;
+package com.alexbank.aiops.decision.application;
 
-import com.yourbank.aiops.decision.domain.*;
+import com.alexbank.aiops.decision.domain.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

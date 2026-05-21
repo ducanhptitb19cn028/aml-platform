@@ -1,4 +1,4 @@
-package com.yourbank.aiops.alerting.infrastructure.sse;
+package com.alexbank.aiops.alerting.infrastructure.sse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

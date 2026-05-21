@@ -1,4 +1,4 @@
-package com.yourbank.aiops.feedback.domain;
+package com.alexbank.aiops.feedback.domain;
 
 public enum OutcomeLabel {
     RESOLVED,

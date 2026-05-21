@@ -1,7 +1,7 @@
-package com.yourbank.aml.monitoring.application;
+package com.alexbank.aml.monitoring.application;
 
-import com.yourbank.aml.monitoring.domain.model.AlertId;
-import com.yourbank.aml.monitoring.domain.model.TransactionId;
+import com.alexbank.aml.monitoring.domain.model.AlertId;
+import com.alexbank.aml.monitoring.domain.model.TransactionId;
 
 import java.util.Optional;
 

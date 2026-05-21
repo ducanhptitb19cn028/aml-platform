@@ -1,4 +1,4 @@
-package com.yourbank.aml.monitoring.infrastructure.messaging;
+package com.alexbank.aml.monitoring.infrastructure.messaging;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

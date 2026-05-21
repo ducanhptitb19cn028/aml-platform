@@ -1,6 +1,6 @@
-package com.yourbank.aml.monitoring.domain.rule;
+package com.alexbank.aml.monitoring.domain.rule;
 
-import com.yourbank.aml.monitoring.domain.model.Transaction;
+import com.alexbank.aml.monitoring.domain.model.Transaction;
 
 import java.time.Duration;
 import java.time.Instant;

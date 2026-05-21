@@ -1,9 +1,9 @@
-package com.yourbank.aml.kyc.infrastructure.messaging;
+package com.alexbank.aml.kyc.infrastructure.messaging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourbank.aml.kyc.application.port.DomainEventPublisher;
-import com.yourbank.aml.kyc.domain.event.DomainEvent;
+import com.alexbank.aml.kyc.application.port.DomainEventPublisher;
+import com.alexbank.aml.kyc.domain.event.DomainEvent;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import org.springframework.stereotype.Component;

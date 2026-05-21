@@ -1,14 +1,15 @@
-package com.yourbank.aml.kyc.application;
+package com.alexbank.aml.kyc.application;
 
-import com.yourbank.aml.kyc.application.command.OnboardCustomerCommand;
-import com.yourbank.aml.kyc.application.command.UpdateRiskProfileCommand;
-import com.yourbank.aml.kyc.application.command.VerifyCustomerCommand;
-import com.yourbank.aml.kyc.application.port.CustomerRepository;
-import com.yourbank.aml.kyc.application.port.DomainEventPublisher;
-import com.yourbank.aml.kyc.domain.model.CountryCode;
-import com.yourbank.aml.kyc.domain.model.Customer;
-import com.yourbank.aml.kyc.domain.model.CustomerId;
-import com.yourbank.aml.kyc.domain.model.RiskProfile;
+import com.alexbank.aml.kyc.application.command.OnboardCustomerCommand;
+import com.alexbank.aml.kyc.application.command.UpdateRiskProfileCommand;
+import com.alexbank.aml.kyc.application.command.VerifyCustomerCommand;
+import com.alexbank.aml.kyc.application.port.CustomerRepository;
+import com.alexbank.aml.kyc.application.port.DomainEventPublisher;
+import com.alexbank.aml.kyc.domain.model.CountryCode;
+import com.alexbank.aml.kyc.domain.model.VerificationStatus;
+import com.alexbank.aml.kyc.domain.model.Customer;
+import com.alexbank.aml.kyc.domain.model.CustomerId;
+import com.alexbank.aml.kyc.domain.model.RiskProfile;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -87,7 +88,7 @@ public class CustomerApplicationService {
             // KYC officers may need to call startVerification first;
             // for the API we accept the simpler "verify" command and
             // promote PENDING customers to IN_PROGRESS automatically.
-            if (c.status() == com.yourbank.aml.kyc.domain.model.VerificationStatus.PENDING) {
+            if (c.status() == VerificationStatus.PENDING) {
                 c.startVerification();
             }
             c.verify(cmd.verifiedBy());

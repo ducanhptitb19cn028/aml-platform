@@ -1,6 +1,6 @@
-package com.yourbank.aml.kyc.application.port;
+package com.alexbank.aml.kyc.application.port;
 
-import com.yourbank.aml.kyc.domain.event.DomainEvent;
+import com.alexbank.aml.kyc.domain.event.DomainEvent;
 
 import java.util.List;
 

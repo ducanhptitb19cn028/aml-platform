@@ -1,7 +1,7 @@
-package com.yourbank.aml.monitoring.domain.rule;
+package com.alexbank.aml.monitoring.domain.rule;
 
-import com.yourbank.aml.monitoring.domain.model.Money;
-import com.yourbank.aml.monitoring.domain.model.Transaction;
+import com.alexbank.aml.monitoring.domain.model.Money;
+import com.alexbank.aml.monitoring.domain.model.Transaction;
 
 import java.math.BigDecimal;
 import java.time.Duration;

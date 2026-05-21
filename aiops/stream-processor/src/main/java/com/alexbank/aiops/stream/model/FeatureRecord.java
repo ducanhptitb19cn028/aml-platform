@@ -1,4 +1,4 @@
-package com.yourbank.aiops.stream.model;
+package com.alexbank.aiops.stream.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

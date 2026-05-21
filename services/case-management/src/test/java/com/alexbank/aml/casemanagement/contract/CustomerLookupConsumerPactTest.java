@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.contract;
+package com.alexbank.aml.casemanagement.contract;
 
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
@@ -8,8 +8,8 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import com.yourbank.aml.casemanagement.infrastructure.api.CustomerProfile;
-import com.yourbank.aml.casemanagement.infrastructure.api.KycClient;
+import com.alexbank.aml.casemanagement.infrastructure.api.CustomerProfile;
+import com.alexbank.aml.casemanagement.infrastructure.api.KycClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 

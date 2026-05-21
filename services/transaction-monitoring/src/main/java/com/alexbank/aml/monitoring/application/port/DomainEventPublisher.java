@@ -1,6 +1,6 @@
-package com.yourbank.aml.monitoring.application.port;
+package com.alexbank.aml.monitoring.application.port;
 
-import com.yourbank.aml.monitoring.domain.event.DomainEvent;
+import com.alexbank.aml.monitoring.domain.event.DomainEvent;
 
 import java.util.List;
 

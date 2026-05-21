@@ -1,4 +1,4 @@
-package com.yourbank.aml.casemanagement.architecture;
+package com.alexbank.aml.casemanagement.architecture;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -16,7 +16,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * annotation inside the domain and the testability collapses.
  */
 @AnalyzeClasses(
-        packages = "com.yourbank.aml.casemanagement",
+        packages = "com.alexbank.aml.casemanagement",
         importOptions = ImportOption.DoNotIncludeTests.class
 )
 class HexagonalArchitectureTest {

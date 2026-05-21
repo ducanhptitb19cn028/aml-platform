@@ -1,7 +1,7 @@
-package com.yourbank.aml.kyc.application.port;
+package com.alexbank.aml.kyc.application.port;
 
-import com.yourbank.aml.kyc.domain.model.Customer;
-import com.yourbank.aml.kyc.domain.model.CustomerId;
+import com.alexbank.aml.kyc.domain.model.Customer;
+import com.alexbank.aml.kyc.domain.model.CustomerId;
 
 import java.util.Optional;
 

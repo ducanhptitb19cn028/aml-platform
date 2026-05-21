@@ -45,5 +45,5 @@ aiops:
 
 logging:
   level:
-    com.yourbank.aiops: INFO
+    com.alexbank.aiops: INFO
     org.springframework.kafka: WARN

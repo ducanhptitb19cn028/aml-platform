@@ -1,6 +1,6 @@
-package com.yourbank.aml.casemanagement.application.port;
+package com.alexbank.aml.casemanagement.application.port;
 
-import com.yourbank.aml.casemanagement.domain.event.DomainEvent;
+import com.alexbank.aml.casemanagement.domain.event.DomainEvent;
 
 import java.util.List;
 

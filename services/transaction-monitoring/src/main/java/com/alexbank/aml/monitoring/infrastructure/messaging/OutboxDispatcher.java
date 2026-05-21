@@ -1,4 +1,4 @@
-package com.yourbank.aml.monitoring.infrastructure.messaging;
+package com.alexbank.aml.monitoring.infrastructure.messaging;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;

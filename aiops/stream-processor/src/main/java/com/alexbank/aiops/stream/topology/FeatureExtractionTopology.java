@@ -1,12 +1,12 @@
-package com.yourbank.aiops.stream.topology;
+package com.alexbank.aiops.stream.topology;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.yourbank.aiops.stream.model.FeatureRecord;
-import com.yourbank.aiops.stream.model.MetricSignal;
+import com.alexbank.aiops.stream.model.FeatureRecord;
+import com.alexbank.aiops.stream.model.MetricSignal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;

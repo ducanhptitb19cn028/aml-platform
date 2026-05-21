@@ -1,15 +1,13 @@
-package com.yourbank.aml.casemanagement.infrastructure;
+package com.alexbank.aml.casemanagement.infrastructure;
 
-import com.yourbank.aml.casemanagement.application.port.CaseRepository;
-import com.yourbank.aml.casemanagement.domain.model.Case;
-import com.yourbank.aml.casemanagement.domain.model.CaseId;
-import com.yourbank.aml.casemanagement.domain.model.CaseStatus;
-import com.yourbank.aml.casemanagement.domain.model.RiskScore;
+import com.alexbank.aml.casemanagement.application.port.CaseRepository;
+import com.alexbank.aml.casemanagement.domain.model.Case;
+import com.alexbank.aml.casemanagement.domain.model.CaseStatus;
+import com.alexbank.aml.casemanagement.domain.model.RiskScore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;

@@ -1,8 +1,8 @@
-package com.yourbank.aiops.remediation.infrastructure.kafka;
+package com.alexbank.aiops.remediation.infrastructure.kafka;
 
-import com.yourbank.aiops.remediation.application.RemediationDecision;
-import com.yourbank.aiops.remediation.application.RemediationService;
-import com.yourbank.aiops.remediation.domain.RemediationRecord;
+import com.alexbank.aiops.remediation.application.RemediationDecision;
+import com.alexbank.aiops.remediation.application.RemediationService;
+import com.alexbank.aiops.remediation.domain.RemediationRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

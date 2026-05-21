@@ -1,4 +1,4 @@
-package com.yourbank.aml.monitoring.domain.event;
+package com.alexbank.aml.monitoring.domain.event;
 
 import java.time.Instant;
 import java.util.UUID;

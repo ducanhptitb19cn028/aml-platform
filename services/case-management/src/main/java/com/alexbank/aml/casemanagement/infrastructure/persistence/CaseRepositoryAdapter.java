@@ -1,9 +1,9 @@
-package com.yourbank.aml.casemanagement.infrastructure.persistence;
+package com.alexbank.aml.casemanagement.infrastructure.persistence;
 
-import com.yourbank.aml.casemanagement.application.port.CaseRepository;
-import com.yourbank.aml.casemanagement.domain.model.Case;
-import com.yourbank.aml.casemanagement.domain.model.CaseId;
-import com.yourbank.aml.casemanagement.domain.model.RiskScore;
+import com.alexbank.aml.casemanagement.application.port.CaseRepository;
+import com.alexbank.aml.casemanagement.domain.model.Case;
+import com.alexbank.aml.casemanagement.domain.model.CaseId;
+import com.alexbank.aml.casemanagement.domain.model.RiskScore;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;

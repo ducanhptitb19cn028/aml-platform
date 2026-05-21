@@ -1,4 +1,4 @@
-package com.yourbank.aml.kyc.domain.model;
+package com.alexbank.aml.kyc.domain.model;
 
 /**
  * The customer's overall risk tier, set during KYC and adjusted over
