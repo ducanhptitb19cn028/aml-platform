@@ -175,63 +175,72 @@ provides a cost-effective trace backend for Kubernetes-scale ingestion~\cite{tem
 
 \begin{figure}[t]
 \centering
+\resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
-  svc/.style={draw,rectangle,rounded corners=2pt,minimum height=0.55cm,
-              minimum width=1.5cm,align=center,font=\scriptsize,fill=gray!10},
-  pillar/.style={draw,rectangle,rounded corners=3pt,minimum height=2.8cm,
-                 minimum width=2.0cm,align=center,font=\scriptsize},
-  intel/.style={draw,rectangle,rounded corners=3pt,minimum height=0.65cm,
-                align=center,font=\scriptsize},
-  arr/.style={-Stealth,thick}
+  svc/.style={draw,rectangle,rounded corners=3pt,minimum height=0.75cm,
+              minimum width=2.2cm,align=center,font=\small,fill=gray!10,
+              draw=gray!55,line width=0.7pt},
+  pillar/.style={draw,rectangle,rounded corners=5pt,minimum height=4.5cm,
+                 minimum width=3.0cm,align=center,font=\small,
+                 line width=0.8pt,inner sep=6pt},
+  intel/.style={draw,rectangle,rounded corners=5pt,minimum height=0.95cm,
+                align=center,font=\small,line width=0.8pt,inner sep=6pt},
+  arr/.style={-Stealth,thick,line width=1.2pt}
 ]
-% Application layer
-\node[svc] (s1) at (1.0,4.1) {KYC};
-\node[svc] (s2) at (2.7,4.1) {Tx-Mon};
-\node[svc] (s3) at (4.4,4.1) {Cases};
-\node[svc] (s4) at (6.1,4.1) {Stream};
-\node[font=\scriptsize] at (7.2,4.1) {\ldots};
-\draw[gray,dashed,rounded corners=3pt] (0.15,3.62) rectangle (7.55,4.55);
-\node[font=\scriptsize\bfseries,fill=white,inner sep=1pt] at (3.85,4.55)
+%% Application layer (y = 6.0)
+\node[svc] (s1) at (1.3, 6.0) {KYC};
+\node[svc] (s2) at (3.8, 6.0) {Tx-Mon};
+\node[svc] (s3) at (6.3, 6.0) {Cases};
+\node[svc] (s4) at (8.8, 6.0) {Stream};
+\node[font=\small] at (10.2,6.0) {\ldots};
+\draw[gray!55,dashed,rounded corners=4pt,line width=0.7pt]
+    (0.1,5.55) rectangle (10.8,6.5);
+\node[font=\small\bfseries,fill=white,inner sep=2pt] at (5.45,6.5)
     {Cloud-Native Application (Kubernetes)};
-\node[font=\tiny,fill=white,inner sep=1pt] at (3.85,3.62)
+\node[font=\scriptsize,fill=white,inner sep=1pt] at (5.45,5.55)
     {OpenTelemetry Auto-Instrumentation};
-% Three pillars
-\node[pillar,fill=blue!5] (M) at (1.3,1.8) {
-    \textbf{Metrics}\\[3pt]
+
+%% Three pillars (centered at y = 2.6)
+\node[pillar,fill=blue!6,draw=blue!50] (M) at (1.8,2.6) {
+    \textbf{Metrics}\\[6pt]
     CPU / Memory\\
     Request rate\\
-    Error rate\\[5pt]
-    \textit{Prometheus}\\
+    Error rate\\[10pt]
+    \textit{Prometheus}
 };
-\node[pillar,fill=green!5] (L) at (3.9,1.8) {
-    \textbf{Logs}\\[3pt]
+\node[pillar,fill=green!6,draw=green!50] (L) at (5.4,2.6) {
+    \textbf{Logs}\\[6pt]
     Events\\
     Stack traces\\
-    Warnings\\[5pt]
+    Warnings\\[10pt]
     \textit{Loki}
 };
-\node[pillar,fill=orange!5] (T) at (6.5,1.8) {
-    \textbf{Traces}\\[3pt]
+\node[pillar,fill=orange!6,draw=orange!50] (T) at (9.0,2.6) {
+    \textbf{Traces}\\[6pt]
     Span latency\\
     Call graph\\
-    Error status\\[5pt]
+    Error status\\[10pt]
     \textit{Tempo}
 };
-% Intelligence layer
-\node[intel,draw=purple!60,fill=purple!5,minimum width=7.9cm] (AI) at (3.9,-0.2) {
+
+%% Intelligence layer (y = -0.5)
+\node[intel,draw=purple!60,fill=purple!5,minimum width=11.5cm] (AI) at (5.4,-0.5) {
     \textbf{Observability Intelligence Layer:}\quad
-    Anomaly Detection $\mid$ RCA $\mid$ Forecasting
+    Anomaly Detection $\;\mid\;$ RCA $\;\mid\;$ Forecasting
 };
-% Arrows: services to pillars
-\draw[arr,gray!70] (s1.south) -- ++(0,-0.25) -| (M.north);
-\draw[arr,gray!70] (s2.south) -- ++(0,-0.25) -| (L.north);
-\draw[arr,gray!70] (s3.south) -- ++(0,-0.25) -| (L.north);
-\draw[arr,gray!70] (s4.south) -- ++(0,-0.25) -| (T.north);
-% Arrows: pillars to intelligence
+
+%% Arrows: services → pillars
+\draw[arr,gray!60] (s1.south) -- ++(0,-0.35) -| (M.north);
+\draw[arr,gray!60] (s2.south) -- ++(0,-0.35) -| (L.north);
+\draw[arr,gray!60] (s3.south) -- ++(0,-0.35) -| (L.north);
+\draw[arr,gray!60] (s4.south) -- ++(0,-0.35) -| (T.north);
+
+%% Arrows: pillars → intelligence
 \draw[arr] (M.south) -- (M.south |- AI.north);
 \draw[arr] (L.south) -- (L.south |- AI.north);
 \draw[arr] (T.south) -- (T.south |- AI.north);
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Three-pillar cloud-native observability. Microservices auto-instrumented
 via OpenTelemetry emit metrics (Prometheus), logs (Loki), and distributed traces
 (Tempo). The intelligence layer fuses all three signal types for anomaly detection,
@@ -512,57 +521,63 @@ outcomes back to the LLM Engine.}
 \centering
 \resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
-  stage/.style={draw,rectangle,rounded corners=3pt,minimum height=1.0cm,
-                minimum width=2.0cm,align=center,font=\scriptsize,fill=orange!8,
-                draw=orange!50},
-  input/.style={draw,rectangle,rounded corners=3pt,minimum height=1.0cm,
-                minimum width=1.4cm,align=center,font=\scriptsize,fill=blue!6,
-                draw=blue!40},
-  output/.style={draw,rectangle,rounded corners=3pt,minimum height=1.0cm,
-                 minimum width=1.6cm,align=center,font=\scriptsize,fill=green!8,
-                 draw=green!50},
-  arr/.style={-Stealth,thick},
-  lbl/.style={font=\tiny,align=center}
+  stage/.style={draw,rectangle,rounded corners=4pt,minimum height=1.4cm,
+                minimum width=2.8cm,align=center,font=\small,fill=orange!8,
+                draw=orange!55,line width=0.8pt,inner sep=5pt},
+  input/.style={draw,rectangle,rounded corners=4pt,minimum height=1.3cm,
+                minimum width=2.1cm,align=center,font=\small,fill=blue!7,
+                draw=blue!50,line width=0.8pt,inner sep=5pt},
+  output/.style={draw,rectangle,rounded corners=4pt,minimum height=1.4cm,
+                 minimum width=2.5cm,align=center,font=\small,fill=green!8,
+                 draw=green!55,line width=0.8pt,inner sep=5pt},
+  arr/.style={-Stealth,thick,line width=1.3pt},
+  lbl/.style={font=\scriptsize,align=center}
 ]
-% Input signals
-\node[input] (met) at (0,1.5) {\textbf{Metrics}\\Prometheus\\(15 s)};
-\node[input] (log) at (0,0.0) {\textbf{Logs}\\Loki\\stream};
-\node[input] (trc) at (0,-1.5){\textbf{Traces}\\Tempo\\OTLP};
+%% Input telemetry signals — generous vertical spacing
+\node[input] (met) at (0, 2.8) {\textbf{Metrics}\\Prometheus\\(15\,s scrape)};
+\node[input] (log) at (0, 0.0) {\textbf{Logs}\\Loki\\stream};
+\node[input] (trc) at (0,-2.8) {\textbf{Traces}\\Tempo\\OTLP push};
 
-% Pipeline stages
-\node[stage] (col) at (2.5,0.0) {\textbf{Collector}\\normalise\\to MetricSignal};
-\node[stage] (sp)  at (5.0,0.0) {\textbf{Stream}\\Processor\\60 s window};
-\node[stage] (ml)  at (7.7,0.75){\textbf{Anomaly}\\Detector\\IsoForest};
-\node[stage] (rca) at (7.7,0.0) {\textbf{RCA}\\Ranker\\Pearson};
-\node[stage] (slo) at (7.7,-0.75){\textbf{SLO}\\Forecast\\OLS};
-\node[stage] (llm) at (10.4,0.0){\textbf{LLM Engine}\\Qwen2.5-3B\\+ LoRA};
-\node[stage] (dec) at (13.1,0.0){\textbf{Decision}\\Engine\\policy gating};
-\node[output] (act) at (15.5,0.0){\textbf{Remediation}\\K8s Actions\\/ Escalate};
+%% Pipeline stages — wider x spacing
+\node[stage] (col) at (4.0, 0.0) {\textbf{Telemetry}\\Collector};
+\node[stage] (sp)  at (7.8, 0.0) {\textbf{Stream}\\Processor\\60\,s window};
 
-% ML sub-box
+%% ML Engine sub-components — wider vertical gaps
+\node[stage] (ml)  at (12.0, 1.5) {\textbf{Anomaly}\\Detector\\IsoForest};
+\node[stage] (rca) at (12.0, 0.0) {\textbf{RCA}\\Ranker\\Pearson};
+\node[stage] (slo) at (12.0,-1.5) {\textbf{SLO}\\Forecast\\OLS};
+
+%% ML sub-box
 \begin{scope}[on background layer]
-  \node[draw=orange!40,dashed,rounded corners=3pt,fill=orange!3,inner sep=4pt,
+  \node[draw=orange!50,dashed,rounded corners=5pt,fill=orange!4,inner sep=7pt,
         fit=(ml)(rca)(slo),
-        label={[font=\tiny,orange!70!black]above:\textbf{ML Engine}}] (mlbox) {};
+        label={[font=\small\bfseries,orange!70!black]above:\textbf{ML Engine}}]
+        (mlbox) {};
 \end{scope}
 
-% Arrows: inputs to collector
-\draw[arr,blue!50] (met.east) -- ++(0.3,0) |- (col.west);
-\draw[arr,blue!50] (log.east) -- (col.west);
-\draw[arr,blue!50] (trc.east) -- ++(0.3,0) |- (col.west);
+%% Downstream stages
+\node[stage] (llm) at (16.5, 0.0) {\textbf{LLM Engine}\\Qwen2.5-3B\\+ LoRA};
+\node[stage] (dec) at (20.5, 0.0) {\textbf{Decision}\\Engine\\policy gating};
+\node[output] (act) at (24.5, 0.0) {\textbf{Remediation}\\K8s Actions\\/ Escalate};
 
-% Pipeline arrows
-\draw[arr] (col.east) -- (sp.west);
-\draw[arr] (sp.east) -- (mlbox.west);
-\draw[arr] (mlbox.east) -- (llm.west);
-\draw[arr] (llm.east) -- (dec.west);
-\draw[arr] (dec.east) -- (act.west);
+%% Arrows: inputs to collector
+\draw[arr,blue!55] (met.east) -- ++(0.5,0) |- (col.west);
+\draw[arr,blue!55] (log.east) -- (col.west);
+\draw[arr,blue!55] (trc.east) -- ++(0.5,0) |- (col.west);
 
-% Latency labels
-\node[lbl,gray] at (3.75,-0.55) {Kafka\\$<$1 s};
-\node[lbl,gray] at (6.2,-0.55) {window\\60 s};
-\node[lbl,gray] at (9.05,-0.55) {LLM\\3--5 s};
-\node[lbl,gray] at (11.85,-0.55) {K8s API\\$<$2 s};
+%% Pipeline arrows
+\draw[arr] (col.east)    -- (sp.west);
+\draw[arr] (sp.east)     -- (mlbox.west);
+\draw[arr] (mlbox.east)  -- (llm.west);
+\draw[arr] (llm.east)    -- (dec.west);
+\draw[arr] (dec.east)    -- (act.west);
+
+%% Latency annotations
+\node[lbl,gray!70] at (5.9, -1.1) {Kafka $<$1\,s};
+\node[lbl,gray!70] at (9.9, -1.1) {window 60\,s};
+\node[lbl,gray!70] at (14.3,-2.6) {ML $<$1\,s};
+\node[lbl,gray!70] at (18.5,-1.1) {LLM 3--5\,s};
+\node[lbl,gray!70] at (22.5,-1.1) {K8s $<$2\,s};
 \end{tikzpicture}%
 }
 \caption{End-to-end detection pipeline. Raw multi-modal telemetry is normalised by
@@ -757,38 +772,43 @@ LOW; two $\to$ MEDIUM; three or more $\to$ HIGH.
 
 \begin{figure}[t]
 \centering
+\resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
-  box/.style={draw,rectangle,rounded corners=4pt,minimum height=0.85cm,
-              minimum width=2.2cm,align=center,font=\scriptsize},
-  ml/.style  ={box,fill=orange!8, draw=orange!55},
-  llm/.style ={box,fill=purple!8, draw=purple!55},
-  dec/.style ={box,fill=blue!8,   draw=blue!50},
-  fb/.style  ={box,fill=green!8,  draw=green!50},
-  arr/.style ={-Stealth,semithick},
-  lbl/.style ={font=\tiny,align=center}
+  box/.style={draw,rectangle,rounded corners=5pt,minimum height=1.2cm,
+              minimum width=3.2cm,align=center,font=\small,
+              line width=0.8pt,inner sep=6pt},
+  ml/.style  ={box,fill=orange!9,  draw=orange!60},
+  llm/.style ={box,fill=purple!9,  draw=purple!60},
+  dec/.style ={box,fill=blue!9,    draw=blue!55},
+  fb/.style  ={box,fill=green!9,   draw=green!55},
+  arr/.style ={-Stealth,thick,line width=1.3pt},
+  lbl/.style ={font=\scriptsize,align=center}
 ]
-% Boxes placed in a horizontal loop
-\node[ml]  (det) at (0.0, 0)   {\textbf{ML Engine}\\Fault Detected};
-\node[llm] (nar) at (3.5, 0)   {\textbf{LLM Engine}\\Incident Report\\(JSON)};
-\node[dec] (dec) at (7.0, 0)   {\textbf{Decision Engine}\\Action Selection};
-\node[dec] (rem) at (10.5,0)   {\textbf{Remediation}\\K8s API Action};
-\node[fb]  (out) at (10.5,-1.8){\textbf{Feedback Svc}\\Outcome Capture\\MLflow};
-\node[fb]  (lra) at (3.5, -1.8){\textbf{LoRA Retraining}\\PEFT adapter\\upload};
+%% Top row — 4 boxes, 4.8cm apart
+\node[ml]  (det) at (0.0,  0)  {\textbf{ML Engine}\\Fault Detected};
+\node[llm] (nar) at (4.8,  0)  {\textbf{LLM Engine}\\Incident Report\\(JSON)};
+\node[dec] (dec) at (9.6,  0)  {\textbf{Decision Engine}\\Action Selection};
+\node[dec] (rem) at (14.4, 0)  {\textbf{Remediation}\\K8s API Action};
 
-% Forward arrows
-\draw[arr] (det.east) -- node[above,lbl]{incident\\record} (nar.west);
-\draw[arr] (nar.east) -- node[above,lbl]{structured\\report} (dec.west);
+%% Bottom row — return path, 3.2cm below
+\node[fb]  (out) at (14.4,-3.2){\textbf{Feedback Svc}\\Outcome Capture\\(MLflow)};
+\node[fb]  (lra) at (4.8, -3.2){\textbf{LoRA Retraining}\\PEFT adapter\\upload};
+
+%% Forward arrows with edge labels
+\draw[arr] (det.east) -- node[above,lbl]{incident} (nar.west);
+\draw[arr] (nar.east) -- node[above,lbl]{report (JSON)} (dec.west);
 \draw[arr] (dec.east) -- node[above,lbl]{decision} (rem.west);
 
-% Feedback loop
-\draw[arr] (rem.south) -- (out.north);
-\draw[arr] (out.west)  -- node[below,lbl]{\textsc{resolved}\\label} (lra.east);
-\draw[arr,dashed,orange!70!black] (lra.north)
-    -- node[left,lbl]{adapter\\weights} (nar.south);
+%% Feedback loop
+\draw[arr] (rem.south)  -- (out.north);
+\draw[arr] (out.west)   -- node[below,lbl]{\textsc{resolved} outcome} (lra.east);
+\draw[arr,dashed,orange!70!black,line width=1.3pt]
+    (lra.north) -- node[left,lbl]{adapter\\weights} (nar.south);
 
-% Input arrow
-\draw[arr,blue!50] (-2.0,0) -- node[above,lbl]{fault\\onset} (det.west);
-\end{tikzpicture}
+%% Input arrow from left
+\draw[arr,blue!55] (-2.5,0) -- node[above,lbl]{fault onset} (det.west);
+\end{tikzpicture}%
+}
 \caption{Closed-loop continuous learning. Each resolved incident generates a labelled
 outcome record; the Feedback Service trains new LoRA adapter weights via PEFT and
 uploads them to the LLM Engine---improving narration quality over time without
@@ -1041,65 +1061,79 @@ transaction volumes.
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[font=\scriptsize]
-%% ── Panel borders ────────────────────────────────────────────────────
-\draw[gray!35,rounded corners=4pt,fill=gray!4] (-0.1,-0.2) rectangle (3.9,4.4);
-\draw[gray!35,rounded corners=4pt,fill=gray!4] (4.1,-0.2) rectangle (8.1,4.4);
-\draw[gray!35,rounded corners=4pt,fill=gray!4] (8.3,-0.2) rectangle (12.3,4.4);
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[font=\small]
+%% Panel geometry: each panel 6.2cm wide x 6.2cm tall, 0.5cm gap
+%% P1: x -0.3..5.9   P2: x 6.4..12.6   P3: x 13.1..19.3
+\draw[gray!35,rounded corners=5pt,fill=gray!4,line width=0.6pt]
+    (-0.3,-0.4) rectangle (5.9,6.2);
+\draw[gray!35,rounded corners=5pt,fill=gray!4,line width=0.6pt]
+    (6.4,-0.4) rectangle (12.6,6.2);
+\draw[gray!35,rounded corners=5pt,fill=gray!4,line width=0.6pt]
+    (13.1,-0.4) rectangle (19.3,6.2);
 
 %% ── Panel 1: RQ1 Detection F1 ────────────────────────────────────────
-\node[font=\scriptsize\bfseries] at (1.9,4.0) {RQ1: Detection F1};
-% Axes
-\draw[->] (0.4,0.4)--(3.6,0.4) node[right,font=\tiny]{Modality};
-\draw[->] (0.4,0.4)--(0.4,3.5) node[above,font=\tiny]{F1};
-% Schematic bars (metrics-only, M+L, all three)
-\fill[blue!25] (0.7,0.4) rectangle (1.3,1.5);
-\fill[blue!45] (1.6,0.4) rectangle (2.2,2.4);
-\fill[blue!70] (2.5,0.4) rectangle (3.1,3.2);
-\node[font=\tiny] at (1.0,0.15) {M};
-\node[font=\tiny] at (1.9,0.15) {M+L};
-\node[font=\tiny] at (2.8,0.15) {All};
-\draw[gray!50,dashed] (0.4,3.0)--(3.5,3.0);
-\node[font=\tiny,gray] at (0.2,3.0) {1.0};
-\node[font=\tiny,gray] at (0.2,0.4) {0};
-\node[font=\tiny,gray!70,align=center] at (1.9,3.7) {\textit{schematic;}\\
-  \textit{results pending}};
+\node[font=\small\bfseries] at (2.8,5.7) {RQ1: Detection F1};
+\draw[->,line width=0.8pt] (0.3,0.6)--(5.5,0.6) node[right,font=\scriptsize]{Modality};
+\draw[->,line width=0.8pt] (0.3,0.6)--(0.3,5.4) node[above,font=\scriptsize]{F1 score};
+%% Bars with outlines
+\fill[blue!22] (0.8,0.6) rectangle (2.0,2.1); \draw[blue!50,line width=0.5pt] (0.8,0.6) rectangle (2.0,2.1);
+\fill[blue!45] (2.3,0.6) rectangle (3.5,3.4); \draw[blue!60,line width=0.5pt] (2.3,0.6) rectangle (3.5,3.4);
+\fill[blue!72] (3.8,0.6) rectangle (5.0,5.0); \draw[blue!75,line width=0.5pt] (3.8,0.6) rectangle (5.0,5.0);
+\node[font=\scriptsize] at (1.4,0.28) {M only};
+\node[font=\scriptsize] at (2.9,0.28) {M+L};
+\node[font=\scriptsize] at (4.4,0.28) {All 3};
+\draw[gray!45,dashed,line width=0.7pt] (0.3,5.0)--(5.4,5.0);
+\node[font=\scriptsize,gray!60] at (-0.1,5.0) {1.0};
+\node[font=\scriptsize,gray!60] at (-0.1,0.6) {0};
+\node[font=\scriptsize,gray!65,align=center] at (2.8,5.4) {\textit{schematic; results pending}};
 
 %% ── Panel 2: RQ2 RCA Top-1 Accuracy ─────────────────────────────────
-\node[font=\scriptsize\bfseries] at (6.1,4.0) {RQ2: RCA Accuracy};
-\draw[->] (4.6,0.4)--(7.8,0.4) node[right,font=\tiny]{Method};
-\draw[->] (4.6,0.4)--(4.6,3.5) node[above,font=\tiny]{Top-1 acc.};
-\fill[blue!30]   (4.8,0.4) rectangle (5.4,1.3);
-\fill[orange!50] (5.7,0.4) rectangle (6.3,2.0);
-\fill[green!55]  (6.6,0.4) rectangle (7.2,3.1);
-\node[font=\tiny] at (5.1,0.15) {Thr.};
-\node[font=\tiny] at (6.0,0.15) {Trace};
-\node[font=\tiny] at (6.9,0.15) {Pearson};
-\draw[gray!50,dashed] (4.6,3.0)--(7.7,3.0);
-\node[font=\tiny,gray] at (4.35,3.0) {1.0};
-\node[font=\tiny,gray] at (4.35,0.4) {0};
-\node[font=\tiny,gray!70,align=center] at (6.1,3.7) {\textit{schematic;}\\
-  \textit{results pending}};
+\node[font=\small\bfseries] at (9.5,5.7) {RQ2: RCA Accuracy};
+\draw[->,line width=0.8pt] (7.0,0.6)--(12.2,0.6) node[right,font=\scriptsize]{Method};
+\draw[->,line width=0.8pt] (7.0,0.6)--(7.0,5.4) node[above,font=\scriptsize]{Top-1 acc.};
+\fill[blue!28]   (7.4,0.6) rectangle (8.6,2.0); \draw[blue!50,line width=0.5pt] (7.4,0.6) rectangle (8.6,2.0);
+\fill[orange!52] (8.9,0.6) rectangle (10.1,3.2); \draw[orange!60,line width=0.5pt] (8.9,0.6) rectangle (10.1,3.2);
+\fill[green!58]  (10.4,0.6) rectangle (11.6,4.9); \draw[green!65,line width=0.5pt] (10.4,0.6) rectangle (11.6,4.9);
+\node[font=\scriptsize] at (8.0,0.28) {Threshold};
+\node[font=\scriptsize] at (9.5,0.28) {Trace};
+\node[font=\scriptsize] at (11.0,0.28) {Pearson};
+\draw[gray!45,dashed,line width=0.7pt] (7.0,5.0)--(12.1,5.0);
+\node[font=\scriptsize,gray!60] at (6.6,5.0) {1.0};
+\node[font=\scriptsize,gray!60] at (6.6,0.6) {0};
+\node[font=\scriptsize,gray!65,align=center] at (9.5,5.4) {\textit{schematic; results pending}};
 
 %% ── Panel 3: RQ3 Tracing Overhead ────────────────────────────────────
-\node[font=\scriptsize\bfseries] at (10.3,4.0) {RQ3: Trace Overhead};
-\draw[->] (8.6,0.4)--(12.0,0.4) node[right,font=\tiny]{Sample \%};
-\draw[->] (8.6,0.4)--(8.6,3.5) node[above,font=\tiny]{p95 lat. (ms)};
-\draw[red!60,thick] (8.9,0.7)--(9.6,1.1)--(10.3,1.8)--(11.0,2.4)--(11.7,3.1);
-\foreach \x/\l in {8.9/0,9.6/10,10.3/50,11.0/75,11.7/100}{
-  \node[font=\tiny] at (\x,0.15) {\l};}
-\draw[gray!50,dashed] (8.6,2.0)--(11.9,2.0)
-  node[right,font=\tiny,gray]{SLO};
-\node[font=\tiny,gray] at (8.35,0.4) {0};
-\node[font=\tiny,gray!70,align=center] at (10.3,3.7) {\textit{schematic;}\\
-  \textit{results pending}};
-\end{tikzpicture}
+\node[font=\small\bfseries] at (16.2,5.7) {RQ3: Trace Overhead};
+\draw[->,line width=0.8pt] (13.6,0.6)--(18.9,0.6) node[right,font=\scriptsize]{Sample rate (\%)};
+\draw[->,line width=0.8pt] (13.6,0.6)--(13.6,5.4) node[above,font=\scriptsize]{p95 lat. (ms)};
+%% Line chart with filled markers
+\draw[red!60,thick,line width=1.5pt]
+    (14.0,0.9)--(14.9,1.5)--(15.8,2.3)--(16.7,3.2)--(17.6,4.5);
+\fill[red!60] (14.0,0.9) circle (3.5pt);
+\fill[red!60] (14.9,1.5) circle (3.5pt);
+\fill[red!60] (15.8,2.3) circle (3.5pt);
+\fill[red!60] (16.7,3.2) circle (3.5pt);
+\fill[red!60] (17.6,4.5) circle (3.5pt);
+\node[font=\scriptsize] at (14.0,0.28) {0};
+\node[font=\scriptsize] at (14.9,0.28) {10};
+\node[font=\scriptsize] at (15.8,0.28) {50};
+\node[font=\scriptsize] at (16.7,0.28) {75};
+\node[font=\scriptsize] at (17.6,0.28) {100};
+%% SLO reference line
+\draw[gray!50,dashed,line width=0.9pt] (13.6,3.0)--(18.8,3.0)
+    node[right,font=\scriptsize,gray!60]{SLO};
+\node[font=\scriptsize,gray!60] at (13.2,3.0) {500};
+\node[font=\scriptsize,gray!60] at (13.2,0.6) {0};
+\node[font=\scriptsize,gray!65,align=center] at (16.2,5.4) {\textit{schematic; results pending}};
+\end{tikzpicture}%
+}
 \caption{Evaluation result panels for the three research questions (schematic;
 quantitative results from ongoing fault injection experiments will replace these
 placeholders). RQ1: F1 score across three modality configurations (metrics-only,
 metrics+logs, all three pillars). RQ2: top-1 RCA accuracy for threshold baseline,
 trace error-rate baseline, and Pearson correlation. RQ3: p95 latency inflation
-across trace sampling rates 0--100\%.}
+across trace sampling rates 0\%--100\% against the 500\,ms SLO reference.}
 \label{fig:eval}
 \end{figure}
 
