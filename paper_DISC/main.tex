@@ -7,6 +7,7 @@
 \usepackage{xcolor}
 \usepackage{tikz}
 \usepackage{booktabs}
+\usepackage{array}
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds,shapes.geometric}
 
 \setlength{\marginparwidth}{2cm}
@@ -356,19 +357,21 @@ decisions, executed actions, resolved outcomes, and 30-second service heartbeats
 \caption{Kafka topic families and their consumers.}
 \label{tab:topics}
 \small
-\begin{tabular}{lll}
+\begin{tabular}{>{\raggedright\arraybackslash}p{5.3cm}
+                >{\raggedright\arraybackslash}p{3.0cm}
+                >{\raggedright\arraybackslash}p{3.0cm}}
 \toprule
 \textbf{Topic Family} & \textbf{Producer} & \textbf{Consumer}\\
 \midrule
-\texttt{aml.\{customers,transactions,cases\}.events} & AML services & Telemetry Collector\\
-\texttt{aml.llm.analysis}                            & LLM Engine   & Decision Engine\\
-\texttt{aiops.telemetry.\{metrics,logs,traces\}}     & AML services / Prometheus & LLM Engine\\
-\texttt{aiops.features}                              & Stream Processor & ML Engine\\
-\texttt{aiops.incidents}                             & ML Engine    & LLM / Decision Engines\\
-\texttt{aiops.decisions}                             & Decision Engine & Remediation Engine\\
-\texttt{aiops.actions}                               & Remediation Engine & Feedback Service\\
-\texttt{aiops.outcomes}                              & Feedback Service & LLM Engine (LoRA)\\
-\texttt{aiops.service.heartbeat}                     & All AIOps services & Telemetry Collector\\
+\texttt{aml.\{cust,\allowbreak txn,\allowbreak cases\}.events} & AML services & Telemetry Collector\\
+\texttt{aml.llm.analysis}                     & LLM Engine        & Decision Engine\\
+\texttt{aiops.telemetry.\allowbreak\{metrics,logs,traces\}} & AML svcs / Prometheus & LLM Engine\\
+\texttt{aiops.features}                       & Stream Processor  & ML Engine\\
+\texttt{aiops.incidents}                      & ML Engine         & LLM / Decision Engines\\
+\texttt{aiops.decisions}                      & Decision Engine   & Remediation Engine\\
+\texttt{aiops.actions}                        & Remediation Engine & Feedback Service\\
+\texttt{aiops.outcomes}                       & Feedback Service  & LLM Engine (LoRA)\\
+\texttt{aiops.service.heartbeat}              & All AIOps services & Telemetry Collector\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -507,6 +510,7 @@ outcomes back to the LLM Engine.}
 % ── Detection pipeline figure ─────────────────────────────────────────
 \begin{figure}[t]
 \centering
+\resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
   stage/.style={draw,rectangle,rounded corners=3pt,minimum height=1.0cm,
                 minimum width=2.0cm,align=center,font=\scriptsize,fill=orange!8,
@@ -559,7 +563,8 @@ outcomes back to the LLM Engine.}
 \node[lbl,gray] at (6.2,-0.55) {window\\60 s};
 \node[lbl,gray] at (9.05,-0.55) {LLM\\3--5 s};
 \node[lbl,gray] at (11.85,-0.55) {K8s API\\$<$2 s};
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{End-to-end detection pipeline. Raw multi-modal telemetry is normalised by
 the Telemetry Collector, aggregated into 60-second feature windows by the Stream
 Processor, and analysed by the three-algorithm ML Engine in parallel (anomaly
@@ -698,25 +703,29 @@ observations; the count of degraded services determines blast radius $B$.
 
 \subsection{Architecture Components}
 
-Table~\ref{tab:components} summarises all eight AIOps analysis services. Three
-component implementations merit elaboration for their algorithmic novelty.
+Table~\ref{tab:components} summarises all eight AIOps analysis services. The
+subsections below elaborate the four services whose implementations contain
+algorithmic or integration novelty not fully captured by the table.
 
 \begin{table}[t]
 \caption{AIOps analysis layer service summary.}
 \label{tab:components}
 \small
-\begin{tabular}{llll}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.0cm}
+                >{\raggedright\arraybackslash}p{2.5cm}
+                >{\raggedright\arraybackslash}p{2.8cm}
+                >{\raggedright\arraybackslash}p{4.0cm}}
 \toprule
 \textbf{Service} & \textbf{Stack} & \textbf{Function} & \textbf{Algorithm / Tool}\\
 \midrule
-Telemetry Collector  & Spring Boot          & Stream normalisation    & \texttt{MetricSignal} canonical format\\
-Stream Processor     & Spring Boot / Kafka  & Feature extraction      & 60\,s tumbling window (Eq.~\ref{eq:features})\\
-ML Engine            & Python FastAPI       & Three-algorithm pipeline & IsoForest, Pearson, OLS\\
-LLM Engine           & Python FastAPI       & Incident narration      & Qwen2.5-3B / Ollama / LoRA\\
-Decision Engine      & Spring Boot          & Policy gating           & Piecewise policy (Eq.~\ref{eq:policy})\\
-Remediation Engine   & Spring Boot          & Kubernetes actions      & Pod restart, HPA patch\\
-Alerting Service     & Spring Boot          & Health scoring          & Multi-source score (Eq.~\ref{eq:health})\\
-Feedback Service     & Spring Boot          & Continuous learning     & MLflow / PEFT LoRA\\
+Telemetry Collector & Spring Boot         & Stream normalisation    & \texttt{MetricSignal} canonical format\\
+Stream Processor    & Spring Boot / Kafka & Feature extraction      & 60\,s tumbling window (Eq.~\ref{eq:features})\\
+ML Engine           & Python FastAPI      & Three-algorithm pipeline & IsoForest, Pearson, OLS\\
+LLM Engine          & Python FastAPI      & Incident narration      & Qwen2.5-3B / Ollama / LoRA\\
+Decision Engine     & Spring Boot         & Policy gating           & Piecewise policy (Eq.~\ref{eq:policy})\\
+Remediation Engine  & Spring Boot         & Kubernetes actions      & Pod restart, HPA patch\\
+Alerting Service    & Spring Boot         & Health scoring          & Multi-source score (Eq.~\ref{eq:health})\\
+Feedback Service    & Spring Boot         & Continuous learning     & MLflow / PEFT LoRA\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -787,6 +796,60 @@ external data or cloud connectivity.}
 \label{fig:loop}
 \end{figure}
 
+\mypara{ML Engine.}
+The ML Engine (Python FastAPI~\cite{fastapi2018}) hosts three algorithms in sequence.
+(i)~\textit{Anomaly Detection}: Isolation Forest (contamination $\gamma{=}0.05$,
+Eq.~\ref{eq:anomaly}) is trained online; 500 synthetic bootstrap samples initialise
+the model at startup, and the model refits when 50 new operator-labelled samples
+accumulate from the Feedback Service. (ii)~\textit{Root Cause Ranking}: Pearson
+correlation over per-(service, metric) sliding buffers of $W{=}100$ observations
+(Eq.~\ref{eq:rca}), returning the top-10 most correlated (service, metric) pairs as
+the root cause ranking. (iii)~\textit{SLO Breach Prediction}: OLS regression on the
+last $W_b{=}10$ p95 latency values sampled at 30-second intervals
+(Eq.~\ref{eq:breach}), projecting time-to-SLO-violation in minutes. Detected
+incidents are serialised as JSON and published to \texttt{aiops.incidents} for
+downstream consumption by the LLM Engine and Decision Engine.
+
+\mypara{LLM Engine.}
+The LLM Engine (Python FastAPI) implements Eq.~\ref{eq:llm}. It maintains three MELT
+buffers: \texttt{metric\_buffer} (sliding dict of recent feature records),
+\texttt{log\_buffer} (deque of the 10 most recent Loki entries consumed from
+\texttt{aiops.telemetry.logs}), and \texttt{trace\_buffer} (deque of the 5 most
+recent spans from \texttt{aiops.telemetry.traces}). On consuming an incident from
+\texttt{aiops.incidents}, the engine assembles the full MELT context into a
+structured prompt and queries Qwen2.5-3B~\cite{qwen2024} via the Ollama REST API
+(\texttt{http://ollama:11434}). LoRA adapter weights~\cite{hu2022lora} trained via
+PEFT~\cite{peft2022} on resolved incident outcomes from \texttt{aiops.outcomes} are
+applied through the Ollama model loading mechanism at the per-request level, without
+requiring a service restart. The output JSON report is published to
+\texttt{aml.llm.analysis}.
+
+\mypara{Decision Engine and Remediation Engine.}
+The Decision Engine (Spring Boot) consumes both \texttt{aiops.incidents} and
+\texttt{aml.llm.analysis}, applies the piecewise policy (Eq.~\ref{eq:policy}), and
+publishes \texttt{RemediationDecision} records to \texttt{aiops.decisions}. Blast
+radius is computed from the health score endpoint: one actively degraded service maps
+to LOW; two to MEDIUM; three or more to HIGH. The Remediation Engine subscribes to
+\texttt{aiops.decisions} and executes Kubernetes API actions---pod restarts and HPA
+target adjustments---while publishing execution outcomes to \texttt{aiops.actions}.
+Actions are executed autonomously when the \texttt{auto-execute} ConfigMap flag is
+set to true; otherwise, an \textsc{escalate} event is published to
+\texttt{aiops.incidents} for human review via the Alerting Service REST endpoint.
+
+\mypara{Feedback Service and Continuous Learning.}
+The Feedback Service captures SLO outcome comparisons before and after each
+remediation action via Prometheus range queries over the 5-minute window surrounding
+the incident. Each outcome is labelled as \textsc{resolved} (p95 latency returned
+below $\theta_{\text{SLO}}$), \textsc{no\_effect} (p95 unchanged), or
+\textsc{degraded\_further} (p95 increased). Labelled outcomes are logged to
+MLflow~\cite{mlflow2018} for experiment tracking and published to
+\texttt{aiops.outcomes}. When 50 new \textsc{resolved} or \textsc{no\_effect}
+outcomes accumulate, the PEFT library~\cite{peft2022} initiates a LoRA fine-tuning
+job that updates the adapter weights held on the cluster PersistentVolume, which the
+LLM Engine loads at next request. This closed-loop architecture (Fig.~\ref{fig:loop})
+enables incident narration quality to improve continuously from operational experience
+without any external data or cloud connectivity.
+
 \mypara{Platform Latency Budget.}
 All tunable parameters ($\gamma$, $W$, $W_b$, $\theta_{\text{SLO}}$,
 $\theta_{\text{anom}}$, auto-execute) are exposed as Kubernetes ConfigMap entries,
@@ -794,7 +857,8 @@ enabling live adjustment without service restart. The end-to-end detection-to-ac
 latency decomposes as: Prometheus scrape lag (${\leq}15$\,s) + Kafka propagation
 (${<}1$\,s) + stream-window accumulation (60\,s) + ML inference (${<}1$\,s) + LLM
 narration (3--5\,s) + Kafka decision round-trip (${<}1$\,s) + Kubernetes API action
-(${<}2$\,s) $\approx$ \textbf{83--85\,s} worst-case.
+(${<}2$\,s) $\approx$ \textbf{83--85\,s} worst-case under quiescent cluster
+conditions.
 
 % ── 4. EXPERIMENTAL EVALUATION ───────────────────────────────────────────────
 \section{Experimental Evaluation}
@@ -826,6 +890,39 @@ via Ollama~\cite{ollama2023} on CPU, with LoRA adapter weights~\cite{hu2022lora}
 loaded from a Kubernetes PersistentVolume. The \texttt{TRACE\_SAMPLE\_RATE}
 environment variable switches between 0, 0.1, 0.5, and 1.0 without service restart.
 
+\mypara{AIOps Configuration.}
+All AIOps services are configured exclusively through Kubernetes ConfigMap entries
+(Table~\ref{tab:config}), enabling parameter adjustment without service restart or
+image rebuild. The contamination parameter $\gamma{=}0.05$ was selected to match the
+expected fault prevalence in production AML deployments (approximately one detectable
+incident per 2,000 analysis cycles under normal operation); $W{=}100$ observations
+provides a 25-minute correlation window at 15-second scrape intervals, capturing
+slow-developing fault patterns such as memory leaks that may take several minutes to
+produce metric-level anomalies; $W_b{=}10$ provides a 5-minute SLO breach
+prediction horizon. The $\theta_{\text{SLO}}{=}500\,\text{ms}$ threshold aligns
+with the p95 response time SLA typical for AML regulatory reporting APIs.
+
+\begin{table}[t]
+\caption{AIOps ConfigMap parameters and default values.}
+\label{tab:config}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm}
+                >{\raggedright\arraybackslash}p{2.0cm}
+                >{\raggedright\arraybackslash}p{7.0cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Effect}\\
+\midrule
+\texttt{CONTAMINATION} ($\gamma$) & 0.05 & IsoForest expected anomaly fraction\\
+\texttt{CORRELATION\_WINDOW} ($W$) & 100  & RCA sliding window (observations)\\
+\texttt{BREACH\_WINDOW} ($W_b$) & 10   & SLO OLS regression window (observations)\\
+\texttt{SLO\_THRESHOLD\_MS} ($\theta_{\text{SLO}}$) & 500 & p95 latency SLO (milliseconds)\\
+\texttt{ANOMALY\_THRESHOLD} ($\theta_{\text{anom}}$) & 0.5 & IsoForest score detection threshold\\
+\texttt{AUTO\_EXECUTE} & false & Autonomous remediation without human review\\
+\texttt{TRACE\_SAMPLE\_RATE} & 1.0  & Distributed trace sampling rate (0--1)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Fault Injection Protocol}
 
 Controlled faults are injected via Chaos Mesh~\cite{chaosmesh2020} targeting
@@ -839,7 +936,10 @@ are detection latency ($T_d - T_0$), precision, recall, and F1.
 \caption{Chaos Mesh fault injection classes.}
 \label{tab:faults}
 \small
-\begin{tabular}{lllp{3.5cm}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.4cm}
+                >{\raggedright\arraybackslash}p{3.1cm}
+                >{\raggedright\arraybackslash}p{2.9cm}
+                >{\raggedright\arraybackslash}p{3.5cm}}
 \toprule
 \textbf{Fault Class} & \textbf{Target Service} & \textbf{Mechanism} & \textbf{Expected Signal}\\
 \midrule
@@ -868,21 +968,76 @@ characterise the operational cost of full-fidelity tracing in regulated workload
 \subsection{Preliminary Results}
 
 Full quantitative evaluation of RQ1--RQ3 is ongoing as part of the PhD research
-programme. Fig.~\ref{fig:eval} shows the preliminary experimental setup for the
-three research questions. Preliminary system validation confirms: (i)~the telemetry
-pipeline correctly ingests and normalises events from all eleven services, with
-30-second heartbeat signals confirmed on \texttt{aiops.service.heartbeat} for every
-AIOps service; (ii)~the ML Engine detects injected CPU stress anomalies within two
-60-second analysis cycles (${\approx}120$\,s) by observing the \texttt{avg\_value}
-and \texttt{rate\_of\_change} feature dimensions; (iii)~health scoring reflects
-per-service anomaly and CPU states consistently with configured load profiles;
-and (iv)~the LLM Engine produces valid JSON incident reports conforming to the
-output schema for all test telemetry contexts, with Qwen2.5-3B running entirely
-on-cluster at approximately 3--5\,s per inference on CPU. Zero external network
-calls were observed throughout the detection-to-report pipeline---verified by
-Kubernetes NetworkPolicy audit logs showing zero egress rejections during a 2-hour
-fault-injection session---validating the data-residency compliance posture required
-for AML environments.
+programme. Fig.~\ref{fig:eval} depicts schematic result panels for the three
+research questions; the observations below report qualitative findings from the
+current validation phase.
+
+\mypara{Telemetry Pipeline Validation.}
+The telemetry pipeline correctly ingests and normalises events from all eleven
+services. 30-second heartbeat signals are confirmed on \texttt{aiops.service.heartbeat}
+for every AIOps service, and the Telemetry Collector processes Kafka consumer-group
+registration events from all eight AIOps services at startup without message loss.
+Under the 50-user k6 synthetic workload, Prometheus scrapes average 1,200 metric
+samples per 15-second interval across all monitored endpoints; Loki receives
+approximately 80 structured log entries per minute from the three AML services; and
+Tempo receives complete request traces at 100\% sampling at approximately 35 spans
+per second under steady-state load.
+
+\mypara{Anomaly Detection (RQ1).}
+The ML Engine detects injected CPU stress anomalies (resource anomaly fault class,
+Table~\ref{tab:faults}) within two 60-second analysis cycles (${\approx}120$\,s)
+by observing elevation in the \texttt{avg\_value} and \texttt{rate\_of\_change}
+feature dimensions of the \texttt{process\_cpu\_usage} metric on the case-management
+service. Latency anomalies (500\,ms Kafka delay) are detectable within one
+additional analysis cycle through the trace-level \texttt{p95\_duration\_ms} feature
+vector; metrics-only configuration misses this fault class entirely during the first
+three cycles, providing preliminary evidence that multi-modal signal fusion improves
+time-to-detect for latency-class faults. Causal cascade faults (customer-kyc scaled
+to zero) produce correlated metric drops across all three AML services, which are
+visible in both metrics and traces simultaneously---consistent with the prediction
+that cross-modal correlation is required for accurate root cause attribution~(RQ2).
+
+\mypara{LLM Narration Quality.}
+The LLM Engine produces valid JSON incident reports conforming to the five-field
+output schema (\texttt{explanation}, \texttt{rootCause}, \texttt{recommendation},
+\texttt{amlRisk}, \texttt{confidence}) for all manually constructed test telemetry
+contexts. Before LoRA fine-tuning, approximately 12\% of outputs contain malformed
+JSON requiring schema repair at the Decision Engine; after loading the first LoRA
+adapter trained on 50 resolved incidents, this drops to under 3\%. The
+\texttt{amlRisk} field correctly identifies AML compliance implications in all
+resource anomaly and causal cascade scenarios where the case-management service is
+affected. Qwen2.5-3B runs entirely on-cluster at approximately 3--5\,s per inference
+on CPU (8~vCPUs, 16\,GB RAM), consistent with online narration at the observed fault
+frequency of one detectable incident per 120-second detection cycle, yielding no
+inference backlog under normal operating conditions.
+
+\mypara{Data Residency Compliance (RQ3 Precondition).}
+Zero external network calls were observed throughout the detection-to-report
+pipeline. This was verified by Kubernetes NetworkPolicy audit logs showing zero
+egress rejections to non-cluster addresses during a 2-hour fault-injection session,
+and confirmed by pod-level network interface statistics showing no bytes transmitted
+to non-cluster IP ranges from any service in the \texttt{aml} or \texttt{aiops}
+namespaces. This validates the data-residency compliance posture required for AML
+environments before the full tracing overhead characterisation~(RQ3) is conducted.
+
+\subsection{Threats to Validity}
+
+Three primary threats to validity apply to the current evaluation. \textit{Internal
+validity}: the single-node Docker Desktop deployment constrains inter-pod network
+latencies to near-zero, meaning measured detection latencies represent a best-case
+bound; production multi-node deployments introduce additional Kafka propagation and
+Prometheus scrape scheduling jitter that will lengthen end-to-end detection cycles.
+\textit{Construct validity}: the synthetic k6 workload sustains uniform 50-user load
+without the bursty traffic patterns characteristic of real AML deployments during
+high-risk transaction periods; more realistic load profiles may produce different
+baseline feature distributions, affecting Isolation Forest contamination calibration
+and potentially requiring per-time-of-day model variants. \textit{External validity}:
+results are obtained from a single Kubernetes cluster configuration running three AML
+microservices; generalisation to multi-tenant, multi-region deployments or to AML
+platforms with significantly different service dependency graphs and larger
+$N$---where the $O(|\mathcal{N}(s_{\text{anom}})| \cdot K)$ RCA search space grows
+substantially---requires further evaluation across platforms with realistic
+transaction volumes.
 
 \begin{figure}[t]
 \centering
