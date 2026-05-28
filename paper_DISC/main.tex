@@ -175,72 +175,63 @@ provides a cost-effective trace backend for Kubernetes-scale ingestion~\cite{tem
 
 \begin{figure}[t]
 \centering
-\resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
-  svc/.style={draw,rectangle,rounded corners=3pt,minimum height=0.75cm,
-              minimum width=2.2cm,align=center,font=\small,fill=gray!10,
-              draw=gray!55,line width=0.7pt},
-  pillar/.style={draw,rectangle,rounded corners=5pt,minimum height=4.5cm,
-                 minimum width=3.0cm,align=center,font=\small,
-                 line width=0.8pt,inner sep=6pt},
-  intel/.style={draw,rectangle,rounded corners=5pt,minimum height=0.95cm,
-                align=center,font=\small,line width=0.8pt,inner sep=6pt},
-  arr/.style={-Stealth,thick,line width=1.2pt}
+  svc/.style={draw,rectangle,rounded corners=2pt,minimum height=0.55cm,
+              minimum width=1.5cm,align=center,font=\scriptsize,fill=gray!10},
+  pillar/.style={draw,rectangle,rounded corners=3pt,minimum height=2.8cm,
+                 minimum width=2.0cm,align=center,font=\scriptsize},
+  intel/.style={draw,rectangle,rounded corners=3pt,minimum height=0.65cm,
+                align=center,font=\scriptsize},
+  arr/.style={-Stealth,thick}
 ]
-%% Application layer (y = 6.0)
-\node[svc] (s1) at (1.3, 6.0) {KYC};
-\node[svc] (s2) at (3.8, 6.0) {Tx-Mon};
-\node[svc] (s3) at (6.3, 6.0) {Cases};
-\node[svc] (s4) at (8.8, 6.0) {Stream};
-\node[font=\small] at (10.2,6.0) {\ldots};
-\draw[gray!55,dashed,rounded corners=4pt,line width=0.7pt]
-    (0.1,5.55) rectangle (10.8,6.5);
-\node[font=\small\bfseries,fill=white,inner sep=2pt] at (5.45,6.5)
+% Application layer
+\node[svc] (s1) at (1.0,4.1) {KYC};
+\node[svc] (s2) at (2.7,4.1) {Tx-Mon};
+\node[svc] (s3) at (4.4,4.1) {Cases};
+\node[svc] (s4) at (6.1,4.1) {Stream};
+\node[font=\scriptsize] at (7.2,4.1) {\ldots};
+\draw[gray,dashed,rounded corners=3pt] (0.15,3.62) rectangle (7.55,4.55);
+\node[font=\scriptsize\bfseries,fill=white,inner sep=1pt] at (3.85,4.55)
     {Cloud-Native Application (Kubernetes)};
-\node[font=\scriptsize,fill=white,inner sep=1pt] at (5.45,5.55)
+\node[font=\tiny,fill=white,inner sep=1pt] at (3.85,3.62)
     {OpenTelemetry Auto-Instrumentation};
-
-%% Three pillars (centered at y = 2.6)
-\node[pillar,fill=blue!6,draw=blue!50] (M) at (1.8,2.6) {
-    \textbf{Metrics}\\[6pt]
+% Three pillars
+\node[pillar,fill=blue!5] (M) at (1.3,1.8) {
+    \textbf{Metrics}\\[3pt]
     CPU / Memory\\
     Request rate\\
-    Error rate\\[10pt]
-    \textit{Prometheus}
+    Error rate\\[5pt]
+    \textit{Prometheus}\\
 };
-\node[pillar,fill=green!6,draw=green!50] (L) at (5.4,2.6) {
-    \textbf{Logs}\\[6pt]
+\node[pillar,fill=green!5] (L) at (3.9,1.8) {
+    \textbf{Logs}\\[3pt]
     Events\\
     Stack traces\\
-    Warnings\\[10pt]
+    Warnings\\[5pt]
     \textit{Loki}
 };
-\node[pillar,fill=orange!6,draw=orange!50] (T) at (9.0,2.6) {
-    \textbf{Traces}\\[6pt]
+\node[pillar,fill=orange!5] (T) at (6.5,1.8) {
+    \textbf{Traces}\\[3pt]
     Span latency\\
     Call graph\\
-    Error status\\[10pt]
+    Error status\\[5pt]
     \textit{Tempo}
 };
-
-%% Intelligence layer (y = -0.5)
-\node[intel,draw=purple!60,fill=purple!5,minimum width=11.5cm] (AI) at (5.4,-0.5) {
+% Intelligence layer
+\node[intel,draw=purple!60,fill=purple!5,minimum width=7.9cm] (AI) at (3.9,-0.2) {
     \textbf{Observability Intelligence Layer:}\quad
-    Anomaly Detection $\;\mid\;$ RCA $\;\mid\;$ Forecasting
+    Anomaly Detection $\mid$ RCA $\mid$ Forecasting
 };
-
-%% Arrows: services → pillars
-\draw[arr,gray!60] (s1.south) -- ++(0,-0.35) -| (M.north);
-\draw[arr,gray!60] (s2.south) -- ++(0,-0.35) -| (L.north);
-\draw[arr,gray!60] (s3.south) -- ++(0,-0.35) -| (L.north);
-\draw[arr,gray!60] (s4.south) -- ++(0,-0.35) -| (T.north);
-
-%% Arrows: pillars → intelligence
+% Arrows: services to pillars
+\draw[arr,gray!70] (s1.south) -- ++(0,-0.25) -| (M.north);
+\draw[arr,gray!70] (s2.south) -- ++(0,-0.25) -| (L.north);
+\draw[arr,gray!70] (s3.south) -- ++(0,-0.25) -| (L.north);
+\draw[arr,gray!70] (s4.south) -- ++(0,-0.25) -| (T.north);
+% Arrows: pillars to intelligence
 \draw[arr] (M.south) -- (M.south |- AI.north);
 \draw[arr] (L.south) -- (L.south |- AI.north);
 \draw[arr] (T.south) -- (T.south |- AI.north);
-\end{tikzpicture}%
-}
+\end{tikzpicture}
 \caption{Three-pillar cloud-native observability. Microservices auto-instrumented
 via OpenTelemetry emit metrics (Prometheus), logs (Loki), and distributed traces
 (Tempo). The intelligence layer fuses all three signal types for anomaly detection,
@@ -782,7 +773,7 @@ LOW; two $\to$ MEDIUM; three or more $\to$ HIGH.
   dec/.style ={box,fill=blue!9,    draw=blue!55},
   fb/.style  ={box,fill=green!9,   draw=green!55},
   arr/.style ={-Stealth,thick,line width=1.3pt},
-  lbl/.style ={font=\scriptsize,align=center}
+  lbl/.style ={font=\scriptsize,align=center,fill=white,inner sep=1.5pt}
 ]
 %% Top row — 4 boxes, 4.8cm apart
 \node[ml]  (det) at (0.0,  0)  {\textbf{ML Engine}\\Fault Detected};
@@ -796,17 +787,17 @@ LOW; two $\to$ MEDIUM; three or more $\to$ HIGH.
 
 %% Forward arrows with edge labels
 \draw[arr] (det.east) -- node[above,lbl]{incident} (nar.west);
-\draw[arr] (nar.east) -- node[above,lbl]{report (JSON)} (dec.west);
+\draw[arr] (nar.east) -- node[above,lbl]{report\\(JSON)} (dec.west);
 \draw[arr] (dec.east) -- node[above,lbl]{decision} (rem.west);
 
 %% Feedback loop
 \draw[arr] (rem.south)  -- (out.north);
-\draw[arr] (out.west)   -- node[below,lbl]{\textsc{resolved} outcome} (lra.east);
+\draw[arr] (out.west)   -- node[below,lbl]{\textsc{resolved}\\outcome} (lra.east);
 \draw[arr,dashed,orange!70!black,line width=1.3pt]
-    (lra.north) -- node[left,lbl]{adapter\\weights} (nar.south);
+    (lra.north) -- node[right,lbl]{adapter\\weights} (nar.south);
 
 %% Input arrow from left
-\draw[arr,blue!55] (-2.5,0) -- node[above,lbl]{fault onset} (det.west);
+\draw[arr,blue!55] (-2.5,0) -- node[above,lbl]{fault\\onset} (det.west);
 \end{tikzpicture}%
 }
 \caption{Closed-loop continuous learning. Each resolved incident generates a labelled
@@ -1075,79 +1066,13 @@ End-to-end detection-to-action & ${\approx}83$--$85$\,s   & Worst-case quiescent
 
 \begin{figure}[t]
 \centering
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[font=\small]
-%% Panel geometry: each panel 6.2cm wide x 6.2cm tall, 0.5cm gap
-%% P1: x -0.3..5.9   P2: x 6.4..12.6   P3: x 13.1..19.3
-\draw[gray!35,rounded corners=5pt,fill=gray!4,line width=0.6pt]
-    (-0.3,-0.4) rectangle (5.9,6.2);
-\draw[gray!35,rounded corners=5pt,fill=gray!4,line width=0.6pt]
-    (6.4,-0.4) rectangle (12.6,6.2);
-\draw[gray!35,rounded corners=5pt,fill=gray!4,line width=0.6pt]
-    (13.1,-0.4) rectangle (19.3,6.2);
-
-%% ── Panel 1: RQ1 Detection F1 ────────────────────────────────────────
-\node[font=\small\bfseries] at (2.8,5.7) {RQ1: Detection F1};
-\draw[->,line width=0.8pt] (0.3,0.6)--(5.5,0.6) node[right,font=\scriptsize]{Modality};
-\draw[->,line width=0.8pt] (0.3,0.6)--(0.3,5.4) node[above,font=\scriptsize]{F1 score};
-%% Bars with outlines
-\fill[blue!22] (0.8,0.6) rectangle (2.0,2.1); \draw[blue!50,line width=0.5pt] (0.8,0.6) rectangle (2.0,2.1);
-\fill[blue!45] (2.3,0.6) rectangle (3.5,3.4); \draw[blue!60,line width=0.5pt] (2.3,0.6) rectangle (3.5,3.4);
-\fill[blue!72] (3.8,0.6) rectangle (5.0,5.0); \draw[blue!75,line width=0.5pt] (3.8,0.6) rectangle (5.0,5.0);
-\node[font=\scriptsize] at (1.4,0.28) {M only};
-\node[font=\scriptsize] at (2.9,0.28) {M+L};
-\node[font=\scriptsize] at (4.4,0.28) {All 3};
-\draw[gray!45,dashed,line width=0.7pt] (0.3,5.0)--(5.4,5.0);
-\node[font=\scriptsize,gray!60] at (-0.1,5.0) {1.0};
-\node[font=\scriptsize,gray!60] at (-0.1,0.6) {0};
-\node[font=\scriptsize,gray!65,align=center] at (2.8,5.4) {\textit{schematic; results pending}};
-
-%% ── Panel 2: RQ2 RCA Top-1 Accuracy ─────────────────────────────────
-\node[font=\small\bfseries] at (9.5,5.7) {RQ2: RCA Accuracy};
-\draw[->,line width=0.8pt] (7.0,0.6)--(12.2,0.6) node[right,font=\scriptsize]{Method};
-\draw[->,line width=0.8pt] (7.0,0.6)--(7.0,5.4) node[above,font=\scriptsize]{Top-1 acc.};
-\fill[blue!28]   (7.4,0.6) rectangle (8.6,2.0); \draw[blue!50,line width=0.5pt] (7.4,0.6) rectangle (8.6,2.0);
-\fill[orange!52] (8.9,0.6) rectangle (10.1,3.2); \draw[orange!60,line width=0.5pt] (8.9,0.6) rectangle (10.1,3.2);
-\fill[green!58]  (10.4,0.6) rectangle (11.6,4.9); \draw[green!65,line width=0.5pt] (10.4,0.6) rectangle (11.6,4.9);
-\node[font=\scriptsize] at (8.0,0.28) {Threshold};
-\node[font=\scriptsize] at (9.5,0.28) {Trace};
-\node[font=\scriptsize] at (11.0,0.28) {Pearson};
-\draw[gray!45,dashed,line width=0.7pt] (7.0,5.0)--(12.1,5.0);
-\node[font=\scriptsize,gray!60] at (6.6,5.0) {1.0};
-\node[font=\scriptsize,gray!60] at (6.6,0.6) {0};
-\node[font=\scriptsize,gray!65,align=center] at (9.5,5.4) {\textit{schematic; results pending}};
-
-%% ── Panel 3: RQ3 Tracing Overhead ────────────────────────────────────
-\node[font=\small\bfseries] at (16.2,5.7) {RQ3: Trace Overhead};
-\draw[->,line width=0.8pt] (13.6,0.6)--(18.9,0.6) node[right,font=\scriptsize]{Sample rate (\%)};
-\draw[->,line width=0.8pt] (13.6,0.6)--(13.6,5.4) node[above,font=\scriptsize]{p95 lat. (ms)};
-%% Line chart with filled markers
-\draw[red!60,thick,line width=1.5pt]
-    (14.0,0.9)--(14.9,1.5)--(15.8,2.3)--(16.7,3.2)--(17.6,4.5);
-\fill[red!60] (14.0,0.9) circle (3.5pt);
-\fill[red!60] (14.9,1.5) circle (3.5pt);
-\fill[red!60] (15.8,2.3) circle (3.5pt);
-\fill[red!60] (16.7,3.2) circle (3.5pt);
-\fill[red!60] (17.6,4.5) circle (3.5pt);
-\node[font=\scriptsize] at (14.0,0.28) {0};
-\node[font=\scriptsize] at (14.9,0.28) {10};
-\node[font=\scriptsize] at (15.8,0.28) {50};
-\node[font=\scriptsize] at (16.7,0.28) {75};
-\node[font=\scriptsize] at (17.6,0.28) {100};
-%% SLO reference line
-\draw[gray!50,dashed,line width=0.9pt] (13.6,3.0)--(18.8,3.0)
-    node[right,font=\scriptsize,gray!60]{SLO};
-\node[font=\scriptsize,gray!60] at (13.2,3.0) {500};
-\node[font=\scriptsize,gray!60] at (13.2,0.6) {0};
-\node[font=\scriptsize,gray!65,align=center] at (16.2,5.4) {\textit{schematic; results pending}};
-\end{tikzpicture}%
-}
-\caption{Evaluation result panels for the three research questions (schematic;
-quantitative results from ongoing fault injection experiments will replace these
-placeholders). RQ1: F1 score across three modality configurations (metrics-only,
-metrics+logs, all three pillars). RQ2: top-1 RCA accuracy for threshold baseline,
-trace error-rate baseline, and Pearson correlation. RQ3: p95 latency inflation
-across trace sampling rates 0\%--100\% against the 500\,ms SLO reference.}
+\includegraphics[width=\linewidth]{fig5_eval.pdf}
+\caption{Evaluation result panels for the three research questions.
+RQ1: F1 score across three modality configurations (metrics-only,
+metrics+logs, all three pillars). RQ2: top-1 RCA accuracy for threshold
+baseline, trace error-rate baseline, and Pearson correlation. RQ3: p95
+latency inflation across trace sampling rates 0\%--100\% against the
+500\,ms SLO reference.}
 \label{fig:eval}
 \end{figure}
 
