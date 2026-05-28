@@ -35,6 +35,11 @@ and explore the React dashboard.
     - [Import the collection and environment](#import-the-collection-and-environment)
     - [Run a folder](#run-a-folder)
     - [End-to-End Flow](#end-to-end-flow)
+  - [14b. Load Testing with k6](#14b-load-testing-with-k6)
+    - [Install k6](#install-k6)
+    - [Baseline 50-VU test](#baseline-50-vu-test)
+    - [RQ3 tracing overhead experiment](#rq3-tracing-overhead-experiment)
+    - [Reading the output](#reading-the-output)
   - [15. AIOps Pipeline in Action](#15-aiops-pipeline-in-action)
     - [Check ml-engine health](#check-ml-engine-health)
     - [Trigger a synthetic anomaly (high CPU)](#trigger-a-synthetic-anomaly-high-cpu)
@@ -188,6 +193,13 @@ aml-platform/
 ├── ml/
 │   └── ml-engine/              # Python FastAPI — port 8000
 ├── dashboard/                  # React 18 + Vite + Tailwind
+├── k6/                         # Load testing (k6)
+│   ├── load-test.js            #   50-VU baseline (paper §4.1)
+│   ├── rq3-overhead.js         #   RQ3 tracing overhead experiment
+│   ├── run-rq3.ps1             #   Automation: all 4 sampling-rate runs
+│   └── lib/
+│       ├── data.js             #     Test data generators
+│       └── workflow.js         #     HTTP wrappers + per-service metrics
 ├── infrastructure/
 │   ├── docker-compose.yml      # Local dev: AML infra
 │   ├── aiops/
@@ -694,6 +706,162 @@ lifecycle in one pass:
 | E2E 8 | Verify Service Health (post-load) | — |
 
 Variables chain automatically — no manual copy-paste needed between steps.
+
+---
+
+## 14b. Load Testing with k6
+
+k6 scripts live in `k6/` and reproduce the **50-VU synthetic AML workload**
+described in the paper (§4.1). Each VU iteration runs the full compliance
+lifecycle: onboard customer → verify → submit 3–5 transactions → open / assign /
+escalate / close a case when an alert fires.
+
+### Install k6
+
+```powershell
+# Windows (winget — no admin required)
+winget install k6
+
+# Windows (Chocolatey)
+choco install k6
+
+# Verify
+k6 version
+# k6 v0.54.0 (...)
+```
+
+> Download the MSI installer from https://k6.io/docs/getting-started/installation/
+> if neither package manager is available.
+
+### Baseline 50-VU test
+
+**Port-forwards must be running first** (`make pf-aml` in a separate terminal).
+
+```powershell
+# From the project root
+k6 run `
+  -e KYC_URL=http://localhost:8082 `
+  -e TXN_URL=http://localhost:8081 `
+  -e CASE_URL=http://localhost:8080 `
+  k6/load-test.js
+```
+
+Or from inside the `k6/` directory (URLs default to localhost):
+
+```powershell
+cd k6
+k6 run load-test.js
+```
+
+To save the full JSON output for analysis:
+
+```powershell
+k6 run --out json=results/baseline.json k6/load-test.js
+```
+
+**What it runs:**
+
+| Stage | Duration | VUs |
+|-------|----------|-----|
+| Ramp-up | 30 s | 0 → 50 |
+| Steady state | 5 min | 50 |
+| Ramp-down | 30 s | 50 → 0 |
+
+**SLO thresholds enforced (test fails if breached):**
+
+| Metric | Threshold |
+|--------|-----------|
+| `http_req_duration` (all services) | p(95) < 500 ms |
+| `kyc_request_duration` | p(95) < 500 ms |
+| `txn_request_duration` | p(95) < 500 ms |
+| `case_request_duration` | p(95) < 500 ms |
+| `aml_error_rate` | rate < 1 % |
+| `http_req_failed` | rate < 1 % |
+
+**Transaction scenario mix (matches paper AML rule coverage):**
+
+| Scenario | Weight | AML Rule |
+|----------|--------|----------|
+| Clean | 55 % | — |
+| High-value (> £15 k) | 20 % | AML-101 |
+| High-risk corridor | 10 % | AML-404 |
+| Structuring (£9 000–£9 999) | 10 % | AML-303 |
+| Crypto off-ramp | 5 % | AML-404 |
+
+### RQ3 tracing overhead experiment
+
+RQ3 measures p95 latency and throughput across four `TRACE_SAMPLE_RATE` values
+(0 %, 10 %, 50 %, 100 %). The `run-rq3.ps1` script automates all four runs:
+it patches the `aiops-config` ConfigMap, triggers a rolling restart of AML
+deployments, waits 60 s for Prometheus to establish a clean baseline, then runs
+k6 and saves results to `k6/results/`.
+
+```powershell
+# Run all four rates automatically (from k6/ directory)
+cd k6
+.\run-rq3.ps1
+
+# Override base URLs if port-forwarding to non-default ports
+.\run-rq3.ps1 `
+  -KycUrl  http://localhost:8082 `
+  -TxnUrl  http://localhost:8081 `
+  -CaseUrl http://localhost:8080 `
+  -OutputDir results
+```
+
+To run a single rate manually:
+
+```powershell
+# First patch the ConfigMap
+kubectl patch configmap aiops-config -n aiops --type merge `
+  -p '{"data":{"TRACE_SAMPLE_RATE":"0.5"}}'
+
+# Restart AML pods to pick up the new env value
+kubectl rollout restart deployment -n aml
+kubectl rollout status deployment -n aml --timeout=120s
+
+# Wait for Prometheus to scrape a clean baseline
+Start-Sleep -Seconds 60
+
+# Run k6 — SAMPLE_RATE is a label only (actual sampling is set via ConfigMap above)
+k6 run `
+  -e SAMPLE_RATE=0.5 `
+  -e KYC_URL=http://localhost:8082 `
+  -e TXN_URL=http://localhost:8081 `
+  -e CASE_URL=http://localhost:8080 `
+  --out json=results/rq3_0_5.json `
+  k6/rq3-overhead.js
+```
+
+Each run: 20 s ramp → **3 min steady state** (50 VUs, 3 transactions/iteration) → 10 s drain.
+
+### Reading the output
+
+k6 prints a summary table at the end of every run. Key lines to check:
+
+```
+✓ kyc onboard → 201
+✓ txn evaluate → 200|201
+✓ case open → 201
+
+http_req_duration.............: avg=42ms  p(90)=110ms  p(95)=148ms
+  { service:kyc }.............: avg=18ms  p(95)=52ms
+  { service:txn }.............: avg=35ms  p(95)=98ms
+  { service:case }............: avg=61ms  p(95)=180ms
+kyc_request_duration...........: avg=18ms  p(95)=52ms
+txn_request_duration...........: avg=35ms  p(95)=98ms
+case_request_duration..........: avg=61ms  p(95)=180ms
+aml_alerts_total...............: 312       (expected ~20 % of transactions)
+aml_cases_opened...............: 298
+aml_error_rate.................: 0.00%  ✓ rate<0.01
+```
+
+For RQ3, compare the `p(95)` column across the four `rq3_rate_*.json` files.
+The pod CPU numbers come from Prometheus — query during each run:
+
+```promql
+rate(container_cpu_usage_seconds_total{namespace="aml"}[1m])
+```
 
 ---
 
@@ -1670,6 +1838,23 @@ make pf-aml                   # forward :8080 :8081 :8082
 make pf-aiops                 # forward :9001-9006 :8000 :8001 :9007
 make pf-dashboard             # forward :3001  (dashboard)
 make pf-obs                   # forward :3000 :9090  (Grafana/Prom)
+
+# ── k6 load testing ────────────────────────────────────────
+# Requires: make pf-aml  (port-forwards :8080 :8081 :8082)
+k6 run k6/load-test.js                     # 50-VU baseline (paper §4.1)
+k6 run --out json=results/baseline.json \
+       k6/load-test.js                     # save full JSON for analysis
+
+# RQ3: all four sampling-rate runs (patches ConfigMap + restarts pods)
+cd k6 ; .\run-rq3.ps1 ; cd ..
+
+# Single RQ3 rate manually
+kubectl patch configmap aiops-config -n aiops --type merge `
+  -p '{"data":{"TRACE_SAMPLE_RATE":"0.1"}}'
+kubectl rollout restart deployment -n aml
+k6 run -e SAMPLE_RATE=0.1 `
+       --out json=k6/results/rq3_0_1.json `
+       k6/rq3-overhead.js
 
 # ── Postman API testing ─────────────────────────────────────
 # Import postman/AML-Platform.postman_collection.json
