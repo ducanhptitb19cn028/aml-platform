@@ -156,16 +156,6 @@ Pankaj Malhotra, Ankita Ramakrishnan, Gaurangi Anand, Lovekesh Vig, Puneet
 \newblock {OpenTelemetry} specification, 2025.
 \newblock [Online]. Available:~\url{https://opentelemetry.io/docs/specs/}.
 
-\bibitem{sklearn2011}
-Fabian Pedregosa, Ga{\"e}l Varoquaux, Alexandre Gramfort, Vincent Michel,
-  Bertrand Thirion, Olivier Grisel, Mathieu Blondel, Peter Prettenhofer, Ron
-  Weiss, Vincent Dubourg, Jake Vanderplas, Alexandre Passos, David Cournapeau,
-  Matthieu Brucher, Matthieu Perrot, and {\'E}douard Duchesnay.
-\newblock Scikit-learn: Machine learning in {Python}.
-\newblock {\em Journal of Machine Learning Research}, 12:2825--2830, 2011.
-\newblock \href {https://doi.org/10.5555/1953048.2078195}
-  {\path{doi:10.5555/1953048.2078195}}.
-
 \bibitem{qi2023loggpt}
 Ziwei Qi, Xiao Ma, Junfeng Xu, Weinan E, Haifeng Lin, and Tong Liu.
 \newblock {LogGPT}: Log anomaly detection via {GPT}.
@@ -203,11 +193,6 @@ Gianluca Soldani and Antonio Brogi.
   (micro)service-based cloud applications: A survey.
 \newblock {\em ACM Computing Surveys}, 55(3):1--39, 2022.
 \newblock \href {https://doi.org/10.1145/3501297} {\path{doi:10.1145/3501297}}.
-
-\bibitem{strimzi2019}
-{Strimzi Authors}.
-\newblock {Strimzi}: {Kafka} on {Kubernetes}, 2019.
-\newblock [Online]. Available:~\url{https://strimzi.io}.
 
 \bibitem{helm2016}
 {The Helm Authors}.

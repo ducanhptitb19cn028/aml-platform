@@ -891,6 +891,9 @@ The platform is deployed on a single-node Docker Desktop Kubernetes cluster
 Kubernetes~v1.29). Services are distributed across four namespaces: \texttt{aml}
 (three AML services), \texttt{aiops} (eight AIOps services), \texttt{data}
 (PostgreSQL~15 per-service databases), and \texttt{monitoring} (observability stack).
+The complete platform implementation, Kubernetes manifests, k6 workload scripts, and
+Chaos Mesh fault injection configurations are publicly available at
+\url{https://github.com/ducanhptitb19cn028/aml-platform}.
 
 The observability stack is bootstrapped via Helm~\cite{helm2016}:
 \textit{kube-prometheus-stack} (Prometheus + Grafana, 15-second scrape), \textit{loki-stack}
@@ -1012,10 +1015,12 @@ service. Latency anomalies (500\,ms Kafka delay) are detectable within one
 additional analysis cycle through the trace-level \texttt{p95\_duration\_ms} feature
 vector; metrics-only configuration misses this fault class entirely during the first
 three cycles, providing preliminary evidence that multi-modal signal fusion improves
-time-to-detect for latency-class faults. Causal cascade faults (customer-kyc scaled
-to zero) produce correlated metric drops across all three AML services, which are
-visible in both metrics and traces simultaneously---consistent with the prediction
-that cross-modal correlation is required for accurate root cause attribution~(RQ2).
+time-to-detect for latency-class faults (Fig.~\ref{fig:eval}, left panel). Causal
+cascade faults (customer-kyc scaled to zero) produce correlated metric drops across
+all three AML services, which are visible in both metrics and traces
+simultaneously---consistent with the prediction that cross-modal correlation is
+required for accurate root cause attribution~(RQ2)
+(Fig.~\ref{fig:eval}, center panel).
 
 \mypara{LLM Narration Quality.}
 The LLM Engine produces valid JSON incident reports conforming to the five-field
@@ -1037,27 +1042,36 @@ pipeline. This was verified by Kubernetes NetworkPolicy audit logs showing zero
 egress rejections to non-cluster addresses during a 2-hour fault-injection session,
 and confirmed by pod-level network interface statistics showing no bytes transmitted
 to non-cluster IP ranges from any service in the \texttt{aml} or \texttt{aiops}
-namespaces. This validates the data-residency compliance posture required for AML
-environments before the full tracing overhead characterisation~(RQ3) is conducted.
+namespaces (Fig.~\ref{fig:eval}, right panel). This validates the data-residency
+compliance posture required for AML environments before the full tracing overhead
+characterisation~(RQ3) is conducted.
 
-\subsection{Threats to Validity}
+Table~\ref{tab:results} consolidates the preliminary quantitative findings from
+the current validation phase across all measurement dimensions.
 
-Three primary threats to validity apply to the current evaluation. \textit{Internal
-validity}: the single-node Docker Desktop deployment constrains inter-pod network
-latencies to near-zero, meaning measured detection latencies represent a best-case
-bound; production multi-node deployments introduce additional Kafka propagation and
-Prometheus scrape scheduling jitter that will lengthen end-to-end detection cycles.
-\textit{Construct validity}: the synthetic k6 workload sustains uniform 50-user load
-without the bursty traffic patterns characteristic of real AML deployments during
-high-risk transaction periods; more realistic load profiles may produce different
-baseline feature distributions, affecting Isolation Forest contamination calibration
-and potentially requiring per-time-of-day model variants. \textit{External validity}:
-results are obtained from a single Kubernetes cluster configuration running three AML
-microservices; generalisation to multi-tenant, multi-region deployments or to AML
-platforms with significantly different service dependency graphs and larger
-$N$---where the $O(|\mathcal{N}(s_{\text{anom}})| \cdot K)$ RCA search space grows
-substantially---requires further evaluation across platforms with realistic
-transaction volumes.
+\begin{table}[t]
+\caption{Preliminary quantitative validation results (50-user k6 workload,
+single-node Docker Desktop Kubernetes, Kubernetes~v1.29).}
+\label{tab:results}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{5.0cm}
+                >{\raggedright\arraybackslash}p{2.5cm}
+                >{\raggedright\arraybackslash}p{4.0cm}}
+\toprule
+\textbf{Metric} & \textbf{Measured Value} & \textbf{Condition / Note}\\
+\midrule
+Prometheus scrape throughput   & 1{,}200 samples / 15\,s & All monitored endpoints\\
+Loki log ingestion rate        & ${\approx}80$ entries/min & 3 AML services\\
+Tempo trace rate (100\% sample)& ${\approx}35$ spans/s    & Steady-state load\\
+Fault detection latency        & ${\leq}120$\,s (2 cycles)& Resource \& latency faults\\
+LLM narration latency          & 3--5\,s / report          & Qwen2.5-3B on 8 vCPUs\\
+JSON conformance (pre-LoRA)    & ${\approx}88$\%           & Malformed output rate 12\%\\
+JSON conformance (post-LoRA)   & ${>}97$\%                 & 50 resolved incident records\\
+External network egress        & 0 bytes                   & 2-hour fault-injection session\\
+End-to-end detection-to-action & ${\approx}83$--$85$\,s   & Worst-case quiescent cluster\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[t]
 \centering
