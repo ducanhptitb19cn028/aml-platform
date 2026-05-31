@@ -27,13 +27,6 @@ Brendan Burns, Brian Grant, David Oppenheimer, Eric Brewer, and John Wilkes.
   2020.
 \newblock [Online]. Available:~\url{https://chaos-mesh.org}.
 
-\bibitem{dang2019aiops}
-Yingnong Dang, Qingwei Lin, and Peng Huang.
-\newblock {AIOps}: Real-world challenges and research innovations.
-\newblock In {\em Proc. IEEE/ACM ICSE-SEIP}, pages 4--5, 2019.
-\newblock \href {https://doi.org/10.1109/ICSE-SEIP.2019.00023}
-  {\path{doi:10.1109/ICSE-SEIP.2019.00023}}.
-
 \bibitem{datadog2023}
 {Datadog}.
 \newblock Watchdog: Algorithmic performance management, 2024.
@@ -45,12 +38,6 @@ Yingnong Dang, Qingwei Lin, and Peng Huang.
 \newblock Davis {AI}: Automatic, intelligent observability, 2024.
 \newblock [Online].
   Available:~\url{https://www.dynatrace.com/platform/artificial-intelligence/}.
-
-\bibitem{evans2003ddd}
-Eric Evans.
-\newblock {\em Domain-Driven Design: Tackling Complexity in the Heart of
-  Software}.
-\newblock Addison-Wesley, 2003.
 
 \bibitem{k62017}
 {Grafana Labs}.
@@ -109,12 +96,6 @@ Joanna Kosinska, Bartosz Balis, Michal Konieczny, Maciej Malawski, and Slawomir
 \newblock {\em IEEE Access}, 11:26800--26825, 2023.
 \newblock \href {https://doi.org/10.1109/ACCESS.2023.3281860}
   {\path{doi:10.1109/ACCESS.2023.3281860}}.
-
-\bibitem{kafka2011}
-Jay Kreps, Neha Narkhede, and Jun Rao.
-\newblock Kafka: A distributed messaging system for log processing.
-\newblock In {\em Proc. NetDB Workshop at VLDB}, 2011.
-\newblock URL: \url{https://kafka.apache.org/}.
 
 \bibitem{liu2020unsupervised}
 Dixin Liu, Ying Chen, Xin Yan, and Mingjun Zhao.
@@ -175,11 +156,6 @@ Sebasti{\'a}n Ram{\'i}rez.
 \newblock {FastAPI}: Modern, fast web framework for {APIs} with {Python}, 2018.
 \newblock [Online]. Available:~\url{https://fastapi.tiangolo.com}.
 
-\bibitem{richardson2018microservices}
-Chris Richardson.
-\newblock {\em Microservices Patterns}.
-\newblock Manning Publications, 2018.
-
 \bibitem{sigelman2010dapper}
 Benjamin~H. Sigelman, Luiz~Andr{\'e} Barroso, Mike Burrows, Pat Stephenson,
   Manoj Plakal, Donald Beaver, Saul Jaspan, and Chandan Shanbhag.
@@ -198,11 +174,6 @@ Gianluca Soldani and Antonio Brogi.
 {The Helm Authors}.
 \newblock {Helm}: The {Kubernetes} package manager, 2016.
 \newblock [Online]. Available:~\url{https://helm.sh}.
-
-\bibitem{springboot2014}
-{VMware, Inc.}
-\newblock {Spring Boot} reference documentation, 2014.
-\newblock [Online]. Available:~\url{https://spring.io/projects/spring-boot}.
 
 \bibitem{w3ctracecontext2021}
 {World Wide Web Consortium}.

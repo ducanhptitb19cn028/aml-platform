@@ -10,6 +10,7 @@
 \citation{hu2022lora}
 \citation{chaosmesh2020}
 \citation{burns2016borg}
+\citation{kosinska2023toward}
 \def\@LN@column{1}
 \gdef\@authornum{1}
 \gdef\@authornum{2}
@@ -18,7 +19,6 @@
 \gdef\@pageNumberEndAbstract{1}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \newlabel{sec:introduction}{{1}{1}{Introduction}{section.1}{}}
-\citation{kosinska2023toward}
 \citation{soldani2022anomaly}
 \citation{dynatrace2023}
 \citation{datadog2023}
@@ -30,80 +30,88 @@
 \citation{prometheus2015}
 \citation{loki2019}
 \citation{tempo2022}
+\citation{soldani2022anomaly}
+\citation{sigelman2010dapper}
+\citation{opentelemetry2023}
+\citation{dynatrace2023}
+\citation{datadog2023}
 \def\@LN@column{1}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Background and Related Works}{2}{section.2}\protected@file@percent }
 \newlabel{sec:background}{{2}{2}{Background and Related Works}{section.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Cloud-Native Observability}{2}{subsection.2.1}\protected@file@percent }
 \citation{soldani2022anomaly}
-\citation{sigelman2010dapper}
-\citation{opentelemetry2023}
-\citation{dang2019aiops}
-\citation{soldani2022anomaly}
-\citation{liu2020unsupervised}
-\citation{he2021bert}
+\citation{han2024holistic}
+\citation{lomio2022anomaly}
 \citation{liu2012isolation}
 \citation{malhotra2016lstm}
 \citation{liu2020unsupervised}
-\citation{he2021bert}
 \citation{qi2023loggpt}
 \citation{han2024holistic}
-\citation{lomio2022anomaly}
 \def\@LN@column{1}
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{fig:observability}{{1}{3}{Three-pillar cloud-native observability. Microservices auto-instrumented via OpenTelemetry emit metrics (Prometheus), logs (Loki), and distributed traces (Tempo). The intelligence layer fuses all three signal types for anomaly detection, RCA, and predictive forecasting}{figure.caption.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Anomaly Detection in Distributed Microservices}{3}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Related Works}{3}{subsection.2.3}\protected@file@percent }
+\citation{liu2012isolation}
+\citation{malhotra2016lstm}
+\citation{liu2020unsupervised}
+\citation{he2021bert}
+\citation{han2024holistic}
+\citation{lomio2022anomaly}
+\citation{qwen2024}
+\citation{hu2022lora}
 \citation{dynatrace2023}
 \citation{datadog2023}
 \citation{qi2023loggpt}
 \citation{han2024holistic}
-\citation{springboot2014}
-\citation{evans2003ddd}
-\citation{richardson2018microservices}
-\citation{kafka2011}
 \def\@LN@column{1}
 \newlabel{tab:comparison}{{1}{4}{Capability comparison of AIOps platforms. \checkmark \,=\,supported, \texttimes \,=\,not supported}{table.caption.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Related Works}{4}{subsection.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}Proposed Approach}{4}{section.3}\protected@file@percent }
-\newlabel{sec:approach}{{3}{4}{Proposed Approach}{section.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}System Architecture}{4}{subsection.3.1}\protected@file@percent }
-\citation{prometheus2015}
-\citation{loki2019}
-\citation{tempo2022}
-\citation{w3ctracecontext2021}
+\@writefile{toc}{\contentsline {section}{\numberline {3}System Architecture}{4}{section.3}\protected@file@percent }
+\newlabel{sec:approach}{{3}{4}{System Architecture}{section.3}{}}
 \def\@LN@column{1}
 \newlabel{tab:topics}{{2}{5}{Kafka topic families and their consumers}{table.caption.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Problem Formulation}{5}{subsection.3.2}\protected@file@percent }
-\citation{liu2012isolation}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Observability Ecosystem and Analytics Pipeline}{5}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Component Roles and Associated Tools/Models}{5}{subsection.3.2}\protected@file@percent }
 \def\@LN@column{1}
 \newlabel{fig:architecture}{{2}{6}{AMLOps-AIOps platform architecture. AML services (blue) publish compliance events to Kafka and push telemetry to the observability stack (green). The AIOps pipeline (orange): Telemetry Collector $\to $ Stream Processor $\to $ ML Engine $\to $ LLM Engine $\to $ Decision Engine $\to $ Remediation Engine. The Feedback Service closes the loop by uploading LoRA adapter weights trained on resolved incident outcomes back to the LLM Engine}{figure.caption.4}{}}
-\newlabel{eq:anomaly_def}{{1}{6}{Problem Formulation}{equation.1}{}}
-\newlabel{eq:features}{{2}{6}{Problem Formulation}{equation.2}{}}
-\newlabel{eq:anomaly}{{3}{6}{Problem Formulation}{equation.3}{}}
+\citation{liu2012isolation}
+\citation{qwen2024}
+\citation{ollama2023}
+\citation{hu2022lora}
+\citation{w3ctracecontext2021}
+\def\@LN@column{1}
+\newlabel{fig:pipeline}{{3}{7}{End-to-end detection pipeline. Raw multi-modal telemetry is normalised by the Telemetry Collector, aggregated into 60-second feature windows by the Stream Processor, and analysed by the three-algorithm ML Engine in parallel (anomaly scoring, RCA ranking, SLO breach prediction). The LLM Engine synthesises MELT context into a structured report, which drives policy-gated remediation. Total worst-case detection-to-action latency is $\approx $83--85\,s}{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Component-to-Objective Storyline}{7}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Problem Formulation}{7}{subsection.3.4}\protected@file@percent }
+\citation{liu2012isolation}
 \citation{qwen2024}
 \citation{hu2022lora}
 \citation{peft2022}
 \citation{ollama2023}
 \def\@LN@column{1}
-\newlabel{fig:pipeline}{{3}{7}{End-to-end detection pipeline. Raw multi-modal telemetry is normalised by the Telemetry Collector, aggregated into 60-second feature windows by the Stream Processor, and analysed by the three-algorithm ML Engine in parallel (anomaly scoring, RCA ranking, SLO breach prediction). The LLM Engine synthesises MELT context into a structured report, which drives policy-gated remediation. Total worst-case detection-to-action latency is $\approx $83--85\,s}{figure.caption.5}{}}
-\newlabel{eq:rca}{{4}{7}{Problem Formulation}{equation.4}{}}
-\newlabel{eq:breach}{{5}{7}{Problem Formulation}{equation.5}{}}
-\newlabel{eq:llm}{{6}{7}{Problem Formulation}{equation.6}{}}
-\newlabel{eq:policy}{{7}{7}{Problem Formulation}{equation.7}{}}
-\newlabel{eq:health}{{8}{7}{Problem Formulation}{equation.8}{}}
+\newlabel{eq:anomaly_def}{{1}{8}{Problem Formulation}{equation.1}{}}
+\newlabel{eq:features}{{2}{8}{Problem Formulation}{equation.2}{}}
+\newlabel{eq:anomaly}{{3}{8}{Problem Formulation}{equation.3}{}}
+\newlabel{eq:rca}{{4}{8}{Problem Formulation}{equation.4}{}}
+\newlabel{eq:breach}{{5}{8}{Problem Formulation}{equation.5}{}}
+\newlabel{eq:llm}{{6}{8}{Problem Formulation}{equation.6}{}}
+\citation{liu2012isolation}
+\def\@LN@column{1}
+\newlabel{tab:components}{{3}{9}{AIOps analysis layer service summary}{table.caption.6}{}}
+\newlabel{eq:policy}{{7}{9}{Problem Formulation}{equation.7}{}}
+\newlabel{eq:health}{{8}{9}{Problem Formulation}{equation.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Architecture Components}{9}{subsection.3.5}\protected@file@percent }
 \citation{mlflow2018}
 \citation{peft2022}
 \citation{fastapi2018}
-\def\@LN@column{1}
-\newlabel{tab:components}{{3}{8}{AIOps analysis layer service summary}{table.caption.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Architecture Components}{8}{subsection.3.3}\protected@file@percent }
-\newlabel{eq:aml}{{9}{8}{Architecture Components}{equation.9}{}}
 \citation{qwen2024}
 \citation{hu2022lora}
 \citation{peft2022}
+\def\@LN@column{1}
+\newlabel{fig:loop}{{4}{10}{Closed-loop continuous learning. Each resolved incident generates a labelled outcome record; the Feedback Service trains new LoRA adapter weights via PEFT and uploads them to the LLM Engine---improving narration quality over time without external data or cloud connectivity}{figure.caption.7}{}}
+\newlabel{eq:aml}{{9}{10}{Architecture Components}{equation.9}{}}
 \citation{mlflow2018}
 \citation{peft2022}
-\def\@LN@column{1}
-\newlabel{fig:loop}{{4}{9}{Closed-loop continuous learning. Each resolved incident generates a labelled outcome record; the Feedback Service trains new LoRA adapter weights via PEFT and uploads them to the LLM Engine---improving narration quality over time without external data or cloud connectivity}{figure.caption.7}{}}
 \citation{helm2016}
 \citation{prometheus2015}
 \citation{loki2019}
@@ -114,61 +122,57 @@
 \citation{qwen2024}
 \citation{ollama2023}
 \citation{hu2022lora}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experimental Evaluation}{11}{section.4}\protected@file@percent }
+\newlabel{sec:eval}{{4}{11}{Experimental Evaluation}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Experimental Setup}{11}{subsection.4.1}\protected@file@percent }
 \citation{chaosmesh2020}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Experimental Evaluation}{10}{section.4}\protected@file@percent }
-\newlabel{sec:eval}{{4}{10}{Experimental Evaluation}{section.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Experimental Setup}{10}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Fault Injection Protocol}{10}{subsection.4.2}\protected@file@percent }
+\newlabel{tab:config}{{4}{12}{AIOps ConfigMap parameters and default values}{table.caption.8}{}}
+\newlabel{tab:faults}{{5}{12}{Chaos Mesh fault injection classes}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Fault Injection Protocol}{12}{subsection.4.2}\protected@file@percent }
 \def\@LN@column{1}
-\newlabel{tab:config}{{4}{11}{AIOps ConfigMap parameters and default values}{table.caption.8}{}}
-\newlabel{tab:faults}{{5}{11}{Chaos Mesh fault injection classes}{table.caption.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Preliminary Results}{11}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Results}{13}{subsection.4.3}\protected@file@percent }
 \def\@LN@column{1}
-\newlabel{tab:results}{{6}{12}{Preliminary quantitative validation results (50-user k6 workload, single-node Docker Desktop Kubernetes, Kubernetes~v1.29)}{table.caption.10}{}}
+\newlabel{tab:results}{{6}{14}{Quantitative evaluation results (50-user k6 workload, single-node Docker Desktop Kubernetes, Kubernetes~v1.29)}{table.caption.10}{}}
+\newlabel{fig:eval}{{5}{14}{Evaluation result panels for the three research questions. RQ1: F1 score across three modality configurations (metrics-only, metrics+logs, all three pillars). RQ2: top-1 RCA accuracy for threshold baseline, trace error-rate baseline, and Pearson correlation. RQ3: p95 latency inflation across trace sampling rates 0\%--100\% against the 500\,ms SLO reference}{figure.caption.11}{}}
+\newlabel{sec:threats}{{4.3}{14}{Results}{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{14}{section.5}\protected@file@percent }
+\newlabel{sec:conclusion}{{5}{14}{Conclusion}{section.5}{}}
 \bibdata{references}
 \bibcite{boten2022cloudnative}{1}
 \bibcite{prometheus2015}{2}
 \bibcite{micrometer2018}{3}
 \bibcite{burns2016borg}{4}
 \bibcite{chaosmesh2020}{5}
-\bibcite{dang2019aiops}{6}
+\bibcite{datadog2023}{6}
+\bibcite{dynatrace2023}{7}
+\bibcite{k62017}{8}
+\bibcite{loki2019}{9}
+\bibcite{tempo2022}{10}
+\bibcite{logback2006}{11}
+\bibcite{han2024holistic}{12}
+\bibcite{he2021bert}{13}
+\bibcite{hu2022lora}{14}
+\bibcite{peft2022}{15}
+\bibcite{kosinska2023toward}{16}
 \def\@LN@column{1}
-\newlabel{fig:eval}{{5}{13}{Evaluation result panels for the three research questions. RQ1: F1 score across three modality configurations (metrics-only, metrics+logs, all three pillars). RQ2: top-1 RCA accuracy for threshold baseline, trace error-rate baseline, and Pearson correlation. RQ3: p95 latency inflation across trace sampling rates 0\%--100\% against the 500\,ms SLO reference}{figure.caption.11}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{13}{section.5}\protected@file@percent }
-\newlabel{sec:conclusion}{{5}{13}{Conclusion}{section.5}{}}
-\gdef\@pageNumberStartBibliography{13}
-\bibcite{datadog2023}{7}
-\bibcite{dynatrace2023}{8}
-\bibcite{evans2003ddd}{9}
-\bibcite{k62017}{10}
-\bibcite{loki2019}{11}
-\bibcite{tempo2022}{12}
-\bibcite{logback2006}{13}
-\bibcite{han2024holistic}{14}
-\bibcite{he2021bert}{15}
-\bibcite{hu2022lora}{16}
-\bibcite{peft2022}{17}
-\bibcite{kosinska2023toward}{18}
-\bibcite{kafka2011}{19}
-\bibcite{liu2020unsupervised}{20}
-\bibcite{liu2012isolation}{21}
-\bibcite{lomio2022anomaly}{22}
-\bibcite{malhotra2016lstm}{23}
-\bibcite{ollama2023}{24}
-\bibcite{opentelemetry2023}{25}
-\bibcite{qi2023loggpt}{26}
-\bibcite{qwen2024}{27}
-\bibcite{fastapi2018}{28}
+\gdef\@pageNumberStartBibliography{15}
+\bibcite{liu2020unsupervised}{17}
+\bibcite{liu2012isolation}{18}
+\bibcite{lomio2022anomaly}{19}
+\bibcite{malhotra2016lstm}{20}
+\bibcite{ollama2023}{21}
+\bibcite{opentelemetry2023}{22}
+\bibcite{qi2023loggpt}{23}
+\bibcite{qwen2024}{24}
+\bibcite{fastapi2018}{25}
+\bibcite{sigelman2010dapper}{26}
+\bibcite{soldani2022anomaly}{27}
+\bibcite{helm2016}{28}
+\bibcite{w3ctracecontext2021}{29}
+\bibcite{mlflow2018}{30}
 \def\@LN@column{1}
-\bibcite{richardson2018microservices}{29}
-\bibcite{sigelman2010dapper}{30}
-\bibcite{soldani2022anomaly}{31}
-\bibcite{helm2016}{32}
-\bibcite{springboot2014}{33}
-\bibcite{w3ctracecontext2021}{34}
-\bibcite{mlflow2018}{35}
-\def\@LN@column{1}
-\gdef\@pageNumberEndBibliography{15}
-\newlabel{TotPages}{{15}{15}{}{page.15}{}}
-\gdef \@abspage@last{15}
+\gdef\@pageNumberEndBibliography{16}
+\newlabel{TotPages}{{16}{16}{}{page.16}{}}
+\gdef \@abspage@last{16}
